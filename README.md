@@ -1,11 +1,11 @@
-# The Orderly Shutdown Pattern <img style="float: right;" src="./images/iwaytechnology284x60.gif" />
+# The Orderly Shutdown Pattern <img align="right" src="./images/iwaytechnology284x60.gif" />
 
 
 MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
 
 ## Orderly Shutdown Pattern Repository Overview
 
-<img style="float: right;" src="./images/OSP_Full.png" />
+<img align="right" src="./images/OSP_Full.png" />
 
 This repository contains materials to introduce and demonstrate **The Orderly Shutdown Pattern** (OSP).
 
