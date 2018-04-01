@@ -35,12 +35,13 @@
 char full_error_msg[1024]; // needs to be generously sized!
 
 int open_msh_recv( const int list_port_num, char message_buf[], const int message_buf_len ) {
-    return open_msh_recv_wto( list_port_num, message_buf,  message_buf_len, 0, 0 );
+    int noflag = 0;
+    return open_msh_recv_wto( list_port_num, message_buf,  message_buf_len, 0, 0, &noflag );
 } // End open_msh_recv(with timeout values disabled)
 
 
 int open_msh_recv_wto( const int list_port_num, char message_buf[], const int message_buf_len,
-                   int socket_listen_timeout_secs, int socket_cli_timeout_secs )
+                   int socket_listen_timeout_secs, int socket_cli_timeout_secs, int *shutdownFlag )
 {
     int listener_sd; // listening socket descriptor
     int client_sd;   // incoming client connection sock desc
@@ -159,13 +160,22 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
 
     // Loop, accepting connections since it could be extraneous/wrong access
     // Function returns if 'good' msg is rec'd
-   socklen_t sin_size = sizeof their_sockaddr;
+    socklen_t sin_size = sizeof their_sockaddr;
     while( true ) {
 
         client_sd = accept( listener_sd, (struct sockaddr *)&their_sockaddr, &sin_size );
+
         if( client_sd == -1 ) {
-            if( set_listen_timeout ) {
-                return MSH_CONNECT_TIMEOUT;
+            if( errno == EWOULDBLOCK || errno == EAGAIN ) {
+                // The client connect accept timed out, is a return/shutdown signaled?
+                if( set_listen_timeout ) {
+                    if( *shutdownFlag ) {
+                        sprintf( full_error_msg, "MSH InfoErr %d; accept() timed out and return/shutdown signaled",
+                                 MSH_CONNECT_TIMEOUT );
+                        IWAY_LOG( IWAY_LOG_INFO, full_error_msg );
+                        return MSH_CONNECT_TIMEOUT;
+                    }
+                }
             }
             sprintf( full_error_msg, "MSH Err %d; accept() failed for this client access",
                      MSH_ERROR_SOCKACCEPT );

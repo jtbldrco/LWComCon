@@ -34,6 +34,7 @@ CXXFLAGS += -std=c++0x
 
 # OPTIONAL - enable debugging to track internal execution flow
 ##### CPPFLAGS += -DDEBUG -DDEBUG_THREADEDWORKER -DDEBUG_MSGCOMMHDLR
+CPPFLAGS += -DDEBUG -DDEBUG_THREADEDWORKER -DDEBUG_MSGCOMMHDLR
 
 # Linker/Loader Flags
 PN_LDFLAGS = -L/usr/lib/x86_64-linux-gnu \

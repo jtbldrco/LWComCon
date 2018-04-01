@@ -66,7 +66,7 @@ public:
     virtual void startWorker() final;
 
     const std::string getInstanceName();
-    virtual void signalShutdown( const bool flag ) final;
+    virtual void signalShutdown( const bool flag );
     void join(); // Expose join() to external objects
 
 protected:

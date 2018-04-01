@@ -73,7 +73,7 @@ extern "C" {
 #define MSH_CONNECT_TIMEOUT      301
 
 int open_msh_recv_wto( const int list_port_num, char message_buf[], const int message_buf_len,
-                       int socket_listen_timeout_secs, int socket_cli_timeout_secs );
+                       int socket_listen_timeout_secs, int socket_cli_timeout_secs, int *shutdownFlag );
 int open_msh_recv( const int list_port_num, char message_buf[], const int message_buf_len );
 int open_msh_send( const char host[], const int list_port_num, const char *message_buf );
 

@@ -136,6 +136,12 @@ void MsgCommHdlr::run() {
 const bool MsgCommHdlr::isThreadRunning() {
     return _threadRunning;
 } // End isThreadRunning()
+
+
+void MsgCommHdlr::signalShutdown( bool flag ) {
+    _socketReadShutdownFlag = 1;
+    ThreadedWorker::signalShutdown( flag );
+} // End signalShutdown(...)
     
 
 /* */
@@ -218,7 +224,8 @@ int MsgCommHdlr::doRecvMessageWto( int conn_timeout, int read_timeout ) {
 
     memset( _receiveBuf, 0, RECV_MESSAGE_BUF_LEN );
     int result = open_msh_recv_wto( _port, _receiveBuf,  RECV_MESSAGE_BUF_LEN,
-                                    conn_timeout, read_timeout); 
+                                    conn_timeout, read_timeout,
+                                    &_socketReadShutdownFlag); 
     if( result == MSH_MESSAGE_RECVD ) _msgQueue.enQueueString( std::string( _receiveBuf ) );
 
     return result;

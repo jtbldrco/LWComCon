@@ -56,6 +56,8 @@ public:
     void go(); // How object is put into motion
     void goUnthreaded(); // Skip startWorker() and run()
 
+    void signalShutdown( bool flag );
+
 protected:
     // Required by base class
     void run();
@@ -83,6 +85,7 @@ private:
 
     int _connectTimeout;
     int _readTimeout;
+    int _socketReadShutdownFlag;
 
 };
 

@@ -159,7 +159,8 @@ int main( int argc, char *argv[] ) {
     } else {
         // Test program invoked as receiver - listen for message
         printf( "Starting test as msg receiver (max recv len <%d>) on port <%d>\n", MAX_RECV_MSG_LEN, port );
-        int recv_result = open_msh_recv_wto( port, recv_msg, MAX_RECV_MSG_LEN, 10, 20 );
+        int shutdown = 1;
+        int recv_result = open_msh_recv_wto( port, recv_msg, MAX_RECV_MSG_LEN, 10, 20, &shutdown );
         if( MSH_MESSAGE_RECVD == recv_result ) {
             printf( "Message successfully received.\n" );
         } else {
@@ -226,7 +227,8 @@ int recv_boundary_condition_test( char host[], int port ) {
     printf( "Set to receive max-recv-len (16-char), NON-null-terminated message.\n" );
     printf( "Should be rejected as overflow by receiver - overflow (return code %d).\n",
             MSH_MESSAGE_RECVD_OVERFLOW );
-    int recv_result = open_msh_recv_wto( port, bctrecv_msg, MAX_RECV, 10, 10 );
+    int shutdown = 1;
+    int recv_result = open_msh_recv_wto( port, bctrecv_msg, MAX_RECV, 10, 10, &shutdown );
     if( MSH_MESSAGE_RECVD == recv_result ) {
         printf( "Message successfully received.\n" );
     } else {

@@ -53,11 +53,9 @@ Notes:
 
 ### Receiver API
 
-A message receiver can receive a character-string message of any practical length (within the limits of the large environment) in this manner [NOTE: 'with-timeout' -- wto -- signature currently under test]:
+A message receiver can receive a character-string message of any practical length (within the limits of the large environment) in this manner:
 
 ```
-int open_msh_recv_wto( const int list_port_num, char message_buf[], const int message_buf_len,
-                       int socket_listen_timeout_secs, int socket_cli_timeout_secs );
 int open_msh_recv( const int list_port_num, char message_buf[], const int message_buf_len );
 ```
 Possible Return Codes:
