@@ -30,16 +30,24 @@
 
 #include "msg_sock_hdlr.h"
 
-#define BACKLOG 10
+// Busier servers may require greater backlog size - this defines the
+// number of queued client connect requests that the server can accommodate,
+// not the total number of concurrent client connections.
+#define BACKLOG 2
 
-char full_error_msg[1024]; // needs to be generously sized!
+char full_error_msg[1024]; // Socket api-generated errors; needs to be generously sized!
 
+// Backward compatible/no timeouts call signature
 int open_msh_recv( const int list_port_num, char message_buf[], const int message_buf_len ) {
-    int noflag = 0;
+    int noflag = 0; // Api placeholder; unused in this circumstance
+
+    // Zeros for timeout values => never time out.
     return open_msh_recv_wto( list_port_num, message_buf,  message_buf_len, 0, 0, &noflag );
 } // End open_msh_recv(with timeout values disabled)
 
 
+// Full-featured timeout receiver with designated shutdown flag checked upon each timeout.
+// To return unconditionally after the first timeout, just set shutdownFlag=1.
 int open_msh_recv_wto( const int list_port_num, char message_buf[], const int message_buf_len,
                    int socket_listen_timeout_secs, int socket_cli_timeout_secs, int *shutdownFlag )
 {
@@ -76,8 +84,10 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
     hints.ai_family = AF_INET6;
     const char listener_ip[] = "::";
 
-    char port[6] = { 0 }; // Port is a 16-bit int; big enough
+    // Port is supposed to be a 16-bit int; this is big enough for an input error
+    char port[12] = { 0 };
     sprintf( port, "%d", list_port_num );
+
     if ( ( return_val = getaddrinfo( listener_ip, port, &hints, &servinfo ) ) != 0 ) {
         sprintf( full_error_msg, "MSH Err %d; getaddrinfo: %s", 
                  MSH_ERROR_GETADDRINFO, gai_strerror( return_val ) );
@@ -85,7 +95,7 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
         return MSH_ERROR_GETADDRINFO;
     }
 
-    // Loop, binding to first we can
+    // Loop, binding to first interface we're able to
     for( ptr_addrinfo = servinfo; ptr_addrinfo != NULL; ptr_addrinfo = ptr_addrinfo->ai_next ) {
         if( ( listener_sd =
               socket( ptr_addrinfo->ai_family, ptr_addrinfo->ai_socktype,
@@ -116,6 +126,7 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
 
     freeaddrinfo( servinfo ); // clean-up
 
+    // Make sure we DID bind to something above
     if( ptr_addrinfo == NULL )  {
         sprintf( full_error_msg,
                  "MSH Err %d; unable to bind to any listener sock desc",
@@ -124,6 +135,8 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
         return MSH_ERROR_SOCKBIND;
     }
 
+    // Are we told to enable timeouts during the effort of
+    // listenting for client connects?
     if( set_listen_timeout ) {
 
 #ifdef DEBUG_MSH
@@ -146,10 +159,9 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
         }
     }
 
+    // In the normal case (regardless of timeout settings) this
+    // will return 0 -
     int listen_result = listen( listener_sd, BACKLOG );
-
-    // DEBUG printf( "Listen result: %d\n", listen_result );
-
 
     if( listen_result == -1 ) {
         sprintf( full_error_msg, "MSH Err %d; listen() failed on sock desc",
@@ -162,11 +174,16 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
     // Function returns if 'good' msg is rec'd
     socklen_t sin_size = sizeof their_sockaddr;
     while( true ) {
-
         client_sd = accept( listener_sd, (struct sockaddr *)&their_sockaddr, &sin_size );
 
         if( client_sd == -1 ) {
             if( errno == EWOULDBLOCK || errno == EAGAIN ) {
+
+#ifdef DEBUG_MSH
+                printf( "Receiver timed out after %d sec wait for client connection.\n"
+                        "Shutdown signaled: %s\n", socket_listen_timeout_secs, (*shutdownFlag ? "true" : "false") );
+#endif
+
                 // The client connect accept timed out, is a return/shutdown signaled?
                 if( set_listen_timeout ) {
                     if( *shutdownFlag ) {
@@ -175,6 +192,7 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
                         IWAY_LOG( IWAY_LOG_INFO, full_error_msg );
                         return MSH_CONNECT_TIMEOUT;
                     }
+                    continue;
                 }
             }
             sprintf( full_error_msg, "MSH Err %d; accept() failed for this client access",
@@ -186,7 +204,6 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
 #ifdef DEBUG_MSH
         printf( "Receiver process received a connection from Sender ...\n" );
 #endif
-
 
         if( set_cli_timeout ) {
 
@@ -210,7 +227,6 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
             }
         }
 
-
         // Note to Developer - set rd_buf to 4 chars long and monitor debug
         // output (requires Makefile CPPFLAGS += -DDEBUG_MSH) for insight
         // into following read-loop logic, especially when running
@@ -222,6 +238,9 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
         int trailing_null_byte = 1; // self-documenting, eh?
         int add_missing_trailing_null_byte = 0;
 
+        // Fall through while loop => connection lost during read op
+        int return_code = MSH_MESSAGE_NOT_RECVD;
+
 #ifdef DEBUG_MSH
         printf( "Receiver process receiving message from Sender ...\n" );
 #endif
@@ -230,7 +249,7 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
         // logic.  IF the sent message length is an even multiple of the
         // byte-length of rd_buf (in this example purposely made small to
         // illustrate multiple read calls), then the loop would hang -
-        // proof is left as an exercise for the skeptic - I've proven this.
+        // proof is left as an exercise for the skeptic - it's been proven!
         // So, what must be done?  The client and server must agree to the
         // following contract - every message sent will be terminated with
         // a null byte.  For strings, that means sending strlen(msg)+1.
@@ -241,15 +260,6 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
 #ifdef DEBUG_MSH
             printf( "Server: socket read-loop, bytes_read: %d\n", bytes_read );
 #endif
-
-            if( bytes_read < 0 && set_listen_timeout) {
-                // 'Assume' a timeout.
-                // TODO - add extra check to ensure that's what happened.
-                sprintf( full_error_msg, "MSH Err %d; client read timed out. Returning.",
-                         MSH_MESSAGE_RECV_TIMEOUT );
-                IWAY_LOG( IWAY_LOG_INFO, full_error_msg );
-                return MSH_MESSAGE_RECV_TIMEOUT;
-            }
 
             // COULD check if the read contents IS null-byte terminated, and, if so,
             // relax this test by one byte ... ya, let's do that ...
@@ -271,6 +281,8 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
 
                 return MSH_MESSAGE_RECVD_OVERFLOW;
             }
+            return_code = MSH_MESSAGE_RECVD;
+
             // Dereferencing message_buf to write into caller-alloc'd memory
             memcpy( message_buf + message_size, rd_buf, bytes_read );
 
@@ -306,15 +318,24 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
 
                 break;
             }
+        } // End while( read > 0 )
+
+        if( bytes_read < 0 ) {
+            // Do we have a timeout situation?  If so, we are NOT going to read
+            // more but we WILL change the return code
+            if( set_cli_timeout && ( errno == EWOULDBLOCK || errno == EAGAIN ) ) { 
+                return_code = MSH_MESSAGE_RECV_TIMEOUT;
+            }
         }
 
 #ifdef DEBUG_MSH
+        printf( "End of while( 'read > 0' ) - bytes read: <%d>\n", bytes_read );
         printf( "Received <%s>\n", message_buf );
-        printf( "Received message from sender message handler.\n" );
+        printf( "Return code: %d.\n", return_code );
 #endif
 
         close( client_sd ); // Done with connection
-        return MSH_MESSAGE_RECVD;
+        return return_code;
 
     } // End while()
 
@@ -368,14 +389,12 @@ int open_msh_send( const char host[], const int list_port_num, const char *messa
         return MSH_ERROR_SOCKCONNECT;
     }
 
-
-
-
-    // JTJTJTJT
+    // Special test case to insert sleep BETWEEN client socket
+    // connect and socket send (enabled in Makefile)
+#ifdef DEBUG_MSH_DELAY_CLIENT_SEND
+    printf( "Delaying client send after connect by 15 secs.\n" );
     sleep( 15 );
-
-
-
+#endif
 
     freeaddrinfo( servinfo ); // all done with this structure
 

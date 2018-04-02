@@ -30,6 +30,11 @@ LIB_DIR=.
 ##### CPPFLAGS += -DDEBUG -DDEBUG_MSH
 CPPFLAGS += -DDEBUG -DDEBUG_MSH
 
+# Enable test case: 15-sec sleep delay between
+# client socket connect and socket send
+# Can induce return code MSH_MESSAGE_RECV_TIMEOUT
+##### CPPFLAGS += DEBUG_MSH_DELAY_CLIENT_SEND
+
 # Linker/Loader Flags
 PN_LDFLAGS = -L/usr/lib/x86_64-linux-gnu -L$(LIB_DIR)
 

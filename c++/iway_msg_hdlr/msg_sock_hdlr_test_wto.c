@@ -153,14 +153,18 @@ int main( int argc, char *argv[] ) {
         if( MSH_MESSAGE_SENT == send_result ) {
             printf( "Message successfully sent.\n" );
         } else {
-            printf( "Send result indicates failure (did you first start a 'receive' process?).\nResult: %d\n", send_result );
+            printf( "Send result indicates failure (did you first start a 'receive' process?)."
+                    "\nResult: %d\n", send_result );
         }
 
     } else {
         // Test program invoked as receiver - listen for message
         printf( "Starting test as msg receiver (max recv len <%d>) on port <%d>\n", MAX_RECV_MSG_LEN, port );
-        int shutdown = 1;
-        int recv_result = open_msh_recv_wto( port, recv_msg, MAX_RECV_MSG_LEN, 10, 20, &shutdown );
+
+        // Cause this test to cycle the recv time-out loop but never exit it
+        int shutdown = 0;
+        int recv_result = open_msh_recv_wto( port, recv_msg, MAX_RECV_MSG_LEN, 6, 10, &shutdown );
+
         if( MSH_MESSAGE_RECVD == recv_result ) {
             printf( "Message successfully received.\n" );
         } else {

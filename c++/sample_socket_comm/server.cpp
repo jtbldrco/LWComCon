@@ -31,6 +31,11 @@
  *    ./server 4  # designates IPv4 address listener
  *    ./server 6  # designates IPv6 address listener
  *
+ *
+ * Note - this sample does NOT include capability to timeout on the
+ * receive (in either case of client connect or client message
+ * delivery).  Other examples in this repo DO include that feature.
+ *
  * Portions of this example were borrowed from (with special
  * thanks to):
  *
@@ -59,11 +64,15 @@
 #define PORT "16273"
 
 // Simultaneous client connection requests accepted
+// busy servers would need more (10, or ???) to prevent
+// connecting clients to get 'resource unavailable' or
+// some such experience
 #define BACKLOG 5
 
 // Make sure this is big enough for all use-cases!
 #define ONE_K_BUFFER 1024
 
+// Needed to kill off the child processes forked within
 void sigchld_handler( int s ) {
 
     // waitpid() might overwrite errno, so we save and restore it:
@@ -72,7 +81,7 @@ void sigchld_handler( int s ) {
     errno = saved_errno;
 }
 
-// Dead-process reaper
+// Needed to kill off the child processes forked within
 void do_sigaction() {
 
     struct sigaction sa;
