@@ -39,11 +39,11 @@
 
 /* */
 MsgCommHdlr::MsgCommHdlr( const std::string instanceName,
-                          MCH_Function function,
+                          const MCH_Function function,
                           const std::string host,
                           const int port ) :
     ThreadedWorker( instanceName ), _threadRunning( false ),
-    _function( function ), _msgQueue( instanceName ), 
+    _function( function ), _msgPtrQueue( instanceName ), 
     _host( host ), _port( port )
 
 {} // End MsgCommHdlr(...)
@@ -51,14 +51,14 @@ MsgCommHdlr::MsgCommHdlr( const std::string instanceName,
 
 /* */
 MsgCommHdlr::MsgCommHdlr( const std::string instanceName,
-                          MCH_Function function,
+                          const MCH_Function function,
                           const std::string host,
                           const int port, const int connectTo,
                           const int readTo ) :
     ThreadedWorker( instanceName ), _threadRunning( false ),
-    _function( function ), _msgQueue( instanceName ), 
+    _function( function ), _msgPtrQueue( instanceName ), 
     _host( host ), _port( port ), _connectTimeout( connectTo ),
-    _readTimeout( readTo )
+    _readTimeout( readTo ), _socketReadShutdownFlag( 0 )
 
 {} // End MsgCommHdlr(...)
 
@@ -72,7 +72,7 @@ MsgCommHdlr::~MsgCommHdlr() {} // End ~MsgCommHdlr()
  * be created and run, with any necessary preliminaries
  * taking place herein beforehand.
  */
-void MsgCommHdlr::go() {
+bool MsgCommHdlr::go() {
 
 #ifdef DEBUG_THREADEDWORKER
     std::cout << "Entered " << __PRETTY_FUNCTION__ << ", object "
@@ -82,7 +82,7 @@ void MsgCommHdlr::go() {
     // Method startWorker() has a 'final' base-class implementation
     // that causes derived class (me) run() to be called, starting
     // up the native thread.
-    startWorker();
+    return startWorker();
 
 } // End go()
 
@@ -139,7 +139,8 @@ const bool MsgCommHdlr::isThreadRunning() {
 
 
 void MsgCommHdlr::signalShutdown( bool flag ) {
-    _socketReadShutdownFlag = 1;
+    // This is a flag to the 'C' msg-hdlg api
+    _socketReadShutdownFlag = ( flag ? 1 : 0 );
     ThreadedWorker::signalShutdown( flag );
 } // End signalShutdown(...)
     
@@ -150,10 +151,16 @@ void MsgCommHdlr::mainLoop() {
     while ( ! isShutdownSignaled() ) {
 
         // Main queued message send/recv loop
-
         switch ( _function ) {
             case sender: 
-                doSendMessage();
+
+#ifdef DEBUG_MSGCOMMHDLR
+                    std::cout << "No shutdown yet, doing server send from "
+                              << __PRETTY_FUNCTION__ << " object " << _instanceName
+                              << ",\non thread " << MY_TID << std::endl;
+#endif
+
+                doSendEnqueuedMessage();
                 break;
 
             case receiver:
@@ -165,7 +172,8 @@ void MsgCommHdlr::mainLoop() {
                               << ",\non thread " << MY_TID << std::endl;
 #endif
 
-                doRecvMessageWto( _connectTimeout, _readTimeout );
+                doRecvAndEnqueueMessageWto( _connectTimeout, _readTimeout,
+                                            _socketReadShutdownFlag );
                 break;
 
             default:
@@ -188,7 +196,7 @@ void MsgCommHdlr::mainLoop() {
 } // End mainLoop()
 
 /* */
-int MsgCommHdlr::doSendMessage() {
+int MsgCommHdlr::doSendEnqueuedMessage() {
 
 #ifdef DEBUG_MSGCOMMHDLR
     std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
@@ -197,23 +205,25 @@ int MsgCommHdlr::doSendMessage() {
 
     // We're a sender - any messages on the queue to send?
 
-    std:string MSG_QUEUE_EMPTY( "_MSG_QUEUE_EMPTY_" );
-    std::string msgToSend = _msgQueue.deQueueString( MSG_QUEUE_EMPTY );
-    if( msgToSend.compare( MSG_QUEUE_EMPTY ) ) return MSH_MESSAGE_NOT_SENT;
+    std::string* pMessage = _msgPtrQueue.deQueueElementPtr();
+    if( pMessage == NULL ) return MSH_MESSAGE_NOT_SENT;
 
 #ifdef DEBUG_MSGCOMMHDLR
-    std::cout << "Sending message " << msgToSend << " from "
+    std::cout << "Sending message <" << *pMessage << "> from "
               <<  __PRETTY_FUNCTION__ << ", object " << _instanceName
               << ", on thread " << MY_TID << std::endl;
 #endif
 
-    return open_msh_send( _host.c_str(), _port, msgToSend.c_str() );
+    int sendResult = open_msh_send( _host.c_str(), _port, pMessage->c_str() );
+    delete pMessage;
+    return sendResult;
 
-} // End doSendMessage
+} // End doSendEnqueuedMessage()
 
 
 /* */
-int MsgCommHdlr::doRecvMessageWto( int conn_timeout, int read_timeout ) {
+int MsgCommHdlr::doRecvAndEnqueueMessageWto( const int conn_timeout, const int read_timeout,
+                                             int _socketReadShutdownFlag ) {
         
 #ifdef DEBUG_MSGCOMMHDLR
     std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
@@ -226,15 +236,17 @@ int MsgCommHdlr::doRecvMessageWto( int conn_timeout, int read_timeout ) {
     int result = open_msh_recv_wto( _port, _receiveBuf,  RECV_MESSAGE_BUF_LEN,
                                     conn_timeout, read_timeout,
                                     &_socketReadShutdownFlag); 
-    if( result == MSH_MESSAGE_RECVD ) _msgQueue.enQueueString( std::string( _receiveBuf ) );
-
+    if( result == MSH_MESSAGE_RECVD ) {
+        std::string *newMessage = new std::string( _receiveBuf );
+        _msgPtrQueue.enQueueElementPtr( newMessage );
+    }
     return result;
 
-} // End doRecvMessageWto
+} // End doRecvAndEnqueueMessageWto(...)
 
 
 /* */
-int MsgCommHdlr::doRecvMessage() {
+int MsgCommHdlr::doRecvAndEnqueueMessage() {
         
 #ifdef DEBUG_MSGCOMMHDLR
     std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
@@ -244,9 +256,11 @@ int MsgCommHdlr::doRecvMessage() {
     // No mutexing needed; this is a private method on a ThreadedWorker
 
     memset( _receiveBuf, 0, RECV_MESSAGE_BUF_LEN );
-    int result = open_msh_recv( _port, _receiveBuf,  RECV_MESSAGE_BUF_LEN ); 
-    if( result == MSH_MESSAGE_RECVD ) _msgQueue.enQueueString( std::string( _receiveBuf ) );
-
+    int result = open_msh_recv( _port, _receiveBuf, RECV_MESSAGE_BUF_LEN ); 
+    if( result == MSH_MESSAGE_RECVD ) {
+        std::string *newMessage = new std::string( _receiveBuf );
+        _msgPtrQueue.enQueueElementPtr( newMessage );
+    }
     return result;
 
-} // End doRecvMessage
+} // End doRecvAndEnqueueMessage

@@ -41,7 +41,7 @@ public:
     // thread mgmt code in base class
     virtual ~ExampleThreadedWorker();
 
-    void go(); // How object is put into motion
+    bool go(); // How object is put into motion
 
 protected:
     // Required by base class

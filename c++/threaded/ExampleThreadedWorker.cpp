@@ -42,7 +42,7 @@ ExampleThreadedWorker::~ExampleThreadedWorker() {}
  * be created and run, with any necessary preliminaries
  * taking place herein beforehand.
  */
-void ExampleThreadedWorker::go() {
+bool ExampleThreadedWorker::go() {
 
 #ifdef DEBUG_THREADEDWORKER
     std::cout << "Entered " << __PRETTY_FUNCTION__ << " on thread " << MY_TID << std::endl;

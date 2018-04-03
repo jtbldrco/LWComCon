@@ -48,6 +48,16 @@ int open_msh_recv( const int list_port_num, char message_buf[], const int messag
 
 // Full-featured timeout receiver with designated shutdown flag checked upon each timeout.
 // To return unconditionally after the first timeout, just set shutdownFlag=1.
+//
+// The 'With Time-Out' (_wto) form actually does two things - first, the server (listener)
+// is capable of listening for a client connection with periodic checks to see if there
+// has been an externally set flag indicating that this server 'listening' should be
+// shut down (and the call return).  This periodic check will occur every 
+// socket_listen_timeout_secs.  Second, once a client connects, if its message send
+// gets delayed, the WTO function can timeout that read operation and return with 
+// appropriate error code.  Each of these two timeout durations can be individually set
+// (in units of seconds).  Finally, if the client read times out, the state of the
+// receive buffer is undefined.  Check the function return value as defined above.
 int open_msh_recv_wto( const int list_port_num, char message_buf[], const int message_buf_len,
                    int socket_listen_timeout_secs, int socket_cli_timeout_secs, int *shutdownFlag )
 {

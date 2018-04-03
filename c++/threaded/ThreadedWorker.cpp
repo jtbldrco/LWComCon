@@ -34,16 +34,29 @@
 #include <iostream>
 #include <chrono>
 
+/***********************************************************************
+ * Make threadSleep static in order to be callable by anyone.
+ */
+void ThreadedWorker::threadSleep( const int milliseconds ) {
+    std::this_thread::sleep_for( std::chrono::milliseconds( milliseconds ) );
+    return;
+} // End threadSleep(...)
+
+
+/**********************************************************************/
 ThreadedWorker::ThreadedWorker( const std::string instanceName ) :
     _pThread( NULL ), _shutdownSignaled( false ) {
 
 #ifdef DEBUG_THREADEDWORKER
-    std::cout << "Entered ctor " << __PRETTY_FUNCTION__ << ", on thread " << MY_TID << std::endl;
+    std::cout << "Entered ctor " << __PRETTY_FUNCTION__ 
+              << ", on thread " << MY_TID << std::endl;
 #endif
 
     _instanceName = instanceName;
 } // End ThreadedWorker(...)
 
+
+/**********************************************************************/
 ThreadedWorker::~ThreadedWorker() {
     // here in the destructor is a defensive shutdown - the instantiator of
     // this object SHOULD call shutdown on it, but might NOT do so.  This
@@ -75,12 +88,13 @@ ThreadedWorker::~ThreadedWorker() {
 
 } // End ~ThreadedWorker()
 
-/*
+
+/***********************************************************************
  * ThreadedWorker::startWorker() is designated 'final' to
  * insure that no override disrupts the internal thread
- * mgmt logic here.
+ * mgmt logic here.  Returns true if thread was launched.
  */
-void ThreadedWorker::startWorker() {
+bool ThreadedWorker::startWorker() {
 
     // See additional notes on mutex in destructor.
     std::lock_guard<std::mutex> guard( _lifecycleMutex ); // Released when exits scope
@@ -98,7 +112,7 @@ void ThreadedWorker::startWorker() {
                   << ", on thread " << MY_TID << std::endl;
 #endif
 
-        return;
+        return false;
     }
 
 #ifdef DEBUG_THREADEDWORKER
@@ -121,8 +135,12 @@ void ThreadedWorker::startWorker() {
         threadSleep( 50 );  // May safely take this number up or down some
     }
 
+    return true;
+
 } // End startWorker()
 
+
+/**********************************************************************/
 void ThreadedWorker::doShutdown() {
 
 #ifdef DEBUG_THREADEDWORKER
@@ -143,7 +161,7 @@ void ThreadedWorker::doShutdown() {
     if (_pThread == NULL) {
 
 #ifdef DEBUG_THREADEDWORKER
-        std::cout << "Internal thread pointer found NULL (redundant safety check), object"
+        std::cout << "Internal thread pointer found NULL (redundant safety check), object "
                   << _instanceName << std::endl
                   << "Without further ado, exiting, releasing lifecycle mutex"
                   << ", on thread " << MY_TID << std::endl;
@@ -168,10 +186,14 @@ void ThreadedWorker::doShutdown() {
 
 } // End doShutdown()
 
+
+/**********************************************************************/
 const std::string ThreadedWorker::getInstanceName() {
     return _instanceName;
 } // End getInstanceName()
 
+
+/**********************************************************************/
 void ThreadedWorker::signalShutdown( const bool flag ) {
 
 #ifdef DEBUG_THREADEDWORKER
@@ -192,12 +214,8 @@ const bool ThreadedWorker::isShutdownSignaled() {
     return _shutdownSignaled;
 } // End isShutdownSignaled()
 
-void ThreadedWorker::threadSleep( const int milliseconds ) {
-    std::this_thread::sleep_for( std::chrono::milliseconds( milliseconds ) );
-    return;
-} // End threadSleep(...)
 
-/*
+/***********************************************************************
  * A semantic overloading of the term 'join' to lend more familiarity
  * to the usage of this abstract base class ...
  */

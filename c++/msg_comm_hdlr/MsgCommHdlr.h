@@ -27,7 +27,7 @@
 
 #include "ThreadedWorker.h"
 
-#include "ThreadSafeMessageQueue.h"
+#include "ThreadSafeMsgPtrQueue.h"
 
 /*
  * Implementation of MsgCommHdlr derived from ThreadedWorker.
@@ -41,11 +41,11 @@ class MsgCommHdlr : public ThreadedWorker {
 
 public:
     MsgCommHdlr( const std::string instanceName,
-                 MCH_Function function,
+                 const MCH_Function function,
                  const std::string host, const int port );
 
     MsgCommHdlr( const std::string instanceName,
-                 MCH_Function function,
+                 const MCH_Function function,
                  const std::string host, const int port,
                  const int connectTo, const int readTo );
 
@@ -53,10 +53,18 @@ public:
     // thread mgmt code in base class
     virtual ~MsgCommHdlr();
 
-    void go(); // How object is put into motion
+    bool go(); // How object is put into motion
     void goUnthreaded(); // Skip startWorker() and run()
 
     void signalShutdown( bool flag );
+
+    // Returns a pointer to std::string. CALLER is then responsible
+    // for memory management of pointed to std::string
+    std::string* dequeueMessage(); // Returns a pointer to std::string
+
+    // Receives a pointer to a heap-based std::string.  String WILL
+    // BE DELETE after its content is sent over the network.
+    int enqueueMessage( std::string *msg );
 
 protected:
     // Required by base class
@@ -74,12 +82,18 @@ private:
     const int _port;
 
     bool _threadRunning;
-    ThreadSafeMessageQueue _msgQueue;
+    ThreadSafeMsgPtrQueue< std::string > _msgPtrQueue;
     MCH_Function _function;
 
-    int doSendMessage();
-    int doRecvMessage();
-    int doRecvMessageWto( int connection_to_secs, int read_to_secs);
+    // Sends an enqueued std::string ptr and then deletes it
+    int doSendEnqueuedMessage();
+
+    // Receives a buffer from the network and new's an std::string
+    // and stores a pointer to it in the queue
+    int doRecvAndEnqueueMessage();
+    int doRecvAndEnqueueMessageWto( const int connection_to_secs,
+                                    const int read_to_secs,
+                                    int socketReadShutdownFlag);
 
     char _receiveBuf[ RECV_MESSAGE_BUF_LEN ];
 

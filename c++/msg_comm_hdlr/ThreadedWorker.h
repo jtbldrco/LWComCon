@@ -55,7 +55,12 @@ public:
     // to enforce best practice; no other logic depends upon 
     // its existence within this base class.  As stated, the
     // minimum necessary behavior is a call to startWorker().
-    virtual void go() = 0;
+    // In the design of ThreadedWorker, it is vital that only
+    // one call is made to startWorker() until after the object
+    // has been joined with.  Therefore, a bool return value
+    // from this call must be false if a second call is
+    // attempted before it joined with from the first call.
+    virtual bool go() = 0;
 
     // startWorker() launches a native thread and invokes
     // the derived class implementation of run() on that new
@@ -63,10 +68,16 @@ public:
     // derived class's go() method.  It is designated here
     // as 'final' to insure that no override disrupts the
     // internal thread mgmt logic within.
-    virtual void startWorker() final;
+    // In the design of ThreadedWorker, it is vital that only
+    // one call is made to startWorker() until after the object
+    // has been joined with.  Therefore, a bool return value
+    // from this call must be false if a second call is
+    // attempted before it joined with from the first call.
+    virtual bool startWorker() final;
 
     const std::string getInstanceName();
     virtual void signalShutdown( const bool flag );
+    static void threadSleep( const int milliseconds );
     void join(); // Expose join() to external objects
 
 protected:
@@ -81,7 +92,6 @@ protected:
 
     std::string _instanceName;
     const bool isShutdownSignaled();
-    void threadSleep( const int milliseconds );
 
 private:
     void doShutdown(); // Internal access

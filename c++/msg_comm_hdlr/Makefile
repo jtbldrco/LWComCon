@@ -14,8 +14,10 @@ PROGRAMNAMES = $(PROG1) $(PROG2)
 ## TODO - create library of ThreadedWorker and ThreadMapper, then access that
 ## from here; add include paths to pick up the headers for those classes
 
-PROG1_OBJS = MsgCommHdlrTestSender.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o ThreadSafeMessageQueue.o
-PROG2_OBJS = MsgCommHdlrTestReceiver.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o ThreadSafeMessageQueue.o
+########## PROG1_OBJS = MsgCommHdlrTestSender.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o ThreadSafeMsgPtrQueue.o
+PROG1_OBJS = MsgCommHdlrTestSender.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
+########## PROG2_OBJS = MsgCommHdlrTestReceiver.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o ThreadSafeMsgPtrQueue.o
+PROG2_OBJS = MsgCommHdlrTestReceiver.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
 
 # Compilers
 CC = gcc
