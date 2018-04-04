@@ -2,6 +2,7 @@
 
 
 MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
+<br/>(*originally published under Open Source License in December, 2002*)
 
 ## Orderly Shutdown Pattern Repository Overview
 
@@ -9,21 +10,23 @@ MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
 
 This repository contains materials to introduce and demonstrate **The Orderly Shutdown Pattern** (OSP).
 
-The Orderly Shutdown Pattern (OSP) allows a running service of arbitrary complexity to monitor for, and respond to *at a time of its own choosing*, a request to shutdown (or, quite frankly, any request).  If/when such request is received, the service will then be able to complete any critical work it has queued or initiated (at the discretion of the service) prior to any response - for example, entering a shutdown process leading ultimately to termination.
+Through the use of TCP/IP sockets communication, the Orderly Shutdown Pattern (OSP) allows a running service of arbitrary complexity to monitor for, and respond to *at a time of its own choosing*, a request to shutdown (or, quite frankly, any request).  If/when such request is received, the service will then be able to complete any critical work it has queued or initiated (at the discretion of the service) prior to any response - for example, entering a shutdown process leading ultimately to termination.
 
-The advantage of this Pattern is that the running service can determine when *and* how to handle the request.  This may include re-enqueueing work with a message broker tasks that have been received but are not complete. Alternatively, it may include completing those tasks prior to termination.  Any pending I/O operations can be properly flushed and closed, and any other related services can likewise be notified of its pending actions or state change.
+There are multiple advantages of this Pattern, first of which is that the running service can determine when *and how* to handle the request.  This may include re-enqueueing work with a message broker those tasks that have been received but are not complete. Alternatively, it may include completing those tasks prior to termination.  Any pending I/O operations can be properly flushed and closed, and any other related services can likewise be notified of its pending actions or state change.
 
-How is this pattern different from Unix signal handling (eg, SIGKILL or SIGTERM)?  To begin with, this pattern allows control of the target service even if that service's host does not allow console access (less a problem in dev/test; more a problem in production; further, imagine a service running within Kubernetes ...).  No access?  No problem.  Rather, network any message to the target host from any (every?) machine inside the firewall.  
+Other advantages include offering control from remote, and multiple, sources. Specifically, how is this pattern different from Unix signal handling (eg, SIGKILL or SIGTERM)?  To begin with, this pattern allows control of the target service even if that service's host does not allow console access (less a problem in dev/test; more a problem in production -- in particular, imagine a service running within Kubernetes ...).
 
-Secondly, with this pattern, the shutdown message *could* include any level of nuance (beyond simply "Shutdown as soon as convenient" which is implemented here -- again, really *any* message symantics up to a complete control protocol).
+No access?  No problem.  Rather, network any message to the target host from any (every?) machine inside the firewall (and, by now, you're thinking *couldn't this be used for more than just* shutdown *signaling?* -- sure!).
 
-Some more simple extended examples might be 'shutdown one producer thread', or, 'add one consumer thread', etc.
+So, with this pattern, the shutdown message *could* include any level of nuance (beyond the simple case of "Shutdown as soon as convenient" which is implemented here -- again, really *any* message symantics up to a complete control protocol).  And through the opened, two-way, socket, any acknowledgement could be returned -- even, for example, some estimate of completion time.
 
-Beyond those points, with this pattern, any port can be used (accommodating firewall and tunneling factors); it requires no higher-level protocol (HTTP, etc); it's very light weight (think *embedded* -- a single socket on a single thread vs some embedded http server dragging in an entire Python environment, or, even heavier, an embedded client coupled with a middle-man broker process to standup and maintain, etc.).
+Some examples of more extended semantics might be 'shutdown one producer thread', or, 'add one consumer thread', etc.
 
-The pattern is extensible to SSL if desired/required.
+Beyond those points, with this pattern, any port can be used (accommodating firewall and tunneling factors); it requires no higher-level protocol (HTTP, etc) making it *very* light weight (think *embedded* -- a single socket on a single thread vs some embedded http server dragging in an entire Python runtime environment, or, even heavier, an embedded message-bus client coupled with a middle-man broker process that must be stood up, and maintained (configured for HA, etc?).
 
-Finally, message sends initiated from a separate process will allow fast and simple integration with standard cron jobs.  Even telnet works with this design pattern.
+The Orderly Shutdown Pattern pattern is extensible to SSL if desired/required (not shown here).
+
+Finally, client-side message sends initiated from a separate process allow fast and simple integration with standard cron jobs.  Even telnet works with this design pattern.
 
 ### Elements of the OSP
 
