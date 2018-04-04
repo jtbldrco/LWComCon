@@ -1,5 +1,6 @@
 # The Orderly Shutdown Pattern <img align="right" src="./images/iwaytechnology284x60.gif" />
 
+## A Multi-Threaded, TCP/IP Network-based, Inter-process Command/Control Design Pattern
 
 MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
 <br/>(*originally published under Open Source License in December, 2002*)
@@ -8,9 +9,14 @@ MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
 
 <img align="right" src="./images/OSP_Full.png" />
 
-This repository contains materials to introduce and demonstrate **The Orderly Shutdown Pattern** (OSP).
+This repository contains materials to introduce and demonstrate (in both C++ and Java) **The Orderly Shutdown Pattern** (OSP) - a multi-threaded, TCP socket-based, inter-process command/control design pattern.  Included are numerous additional utility design patterns such as -
 
-Through the use of TCP/IP sockets communication, the Orderly Shutdown Pattern (OSP) allows a running service of arbitrary complexity to monitor for, and respond to *at a time of its own choosing*, a request to shutdown (or, quite frankly, any request).  If/when such request is received, the service will then be able to complete any critical work it has queued or initiated (at the discretion of the service) prior to any response - for example, entering a shutdown process leading ultimately to termination.
+- the Threaded Worker which codifies the multi-threading division of labor between creator- and created-threads and the patterns of use for startup, operation and shutdown,
+- a Thread-Safe, Pointer-based Message Queue - the C++ *templatized* class ThreadSafeMsgPtrQueue - which demonstrates software *resource acquisition is initialization* (RAII) and makes trivial (literally *invisible*) the thread-safe use of Standard Template Library collections (and also defines a model for safe, responsible management of pointer-based C++ collections),
+- Linux rsyslog logging techniques and utilities, and
+- other utilities to ease C++ multi-threaded & network programming, testing, and trouble-shooting.
+
+The Orderly Shutdown Pattern (OSP), using TCP/IP-based network communications, allows a *listener thread* of a running service of arbitrary complexity to monitor for, and respond to *at a time of its own choosing*, a request to shutdown (or, quite frankly, any request).  If/when such request is received, the service will then be able to complete any critical work it has queued or initiated (at the discretion of the service) prior to any response - for example, entering a shutdown process leading ultimately to termination.
 
 There are multiple advantages of this Pattern, first of which is that the running service can determine when *and how* to handle the request.  This may include re-enqueueing work with a message broker those tasks that have been received but are not complete. Alternatively, it may include completing those tasks prior to termination.  Any pending I/O operations can be properly flushed and closed, and any other related services can likewise be notified of its pending actions or state change.
 
