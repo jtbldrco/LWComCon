@@ -2,6 +2,7 @@
 
 
 MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
+(originally published December, 2002)
 
 ## Orderly Shutdown Pattern Repository Overview
 
