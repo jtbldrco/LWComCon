@@ -75,7 +75,7 @@ class MsgQueueLock {
 public:
 
     /************************************************************************/
-    MsgQueueLock( string protectedObjectName, mutex *pMsgQueueMutex ) :
+    MsgQueueLock( string &protectedObjectName, mutex *pMsgQueueMutex ) :
         _protectedObjectName( protectedObjectName )
     {
 
