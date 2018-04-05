@@ -64,7 +64,8 @@ void ThreadMapper::clear() {
     memset( _names, 0, sizeof _names );
 }
 
-/*
+
+/**************************************************************************
  * ThreadMapper::getMappedThreadName either finds the mapped (simplified)
  * name and returns it, or inserts this threadId into the map and then
  * returns its simplified name.  In an overflow situation (over 260
@@ -105,9 +106,11 @@ char *ThreadMapper::getMappedThreadName( std::thread::id threadId ) {
 
     }
     return _names[index]; // Points to mapped name in lazy init array
+
 }
 
-/*
+
+/**************************************************************************
  * ThreadMapper::lazyShortNameAssignment, on an as needed basis only,
  * derives a thread short name and puts it in the _names array for
  * future use.
@@ -120,4 +123,5 @@ void ThreadMapper::lazyShortNameAssignment( const int index ) {
     _names[index][0] = _letters[letter];
     _names[index][1] = _digits[digit];
     _names[index][2] = '\0';
+
 }

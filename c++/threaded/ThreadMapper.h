@@ -58,6 +58,6 @@ public:
     ThreadMapper ( ThreadMapper const& )  = delete;
     void operator=( ThreadMapper const& ) = delete;
 
-};
+}; // End class ThreadMapper
 
 #endif // SRC_THREADMAPPER_H_

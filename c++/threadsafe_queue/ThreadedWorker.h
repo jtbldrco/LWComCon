@@ -102,6 +102,6 @@ private:
     // redundant startup AND doShutdown.
     std::mutex _lifecycleMutex;
 
-};
+}; // End class ThreadedWorker
 
 #endif /* SRC_THREADEDWORKER_H_ */

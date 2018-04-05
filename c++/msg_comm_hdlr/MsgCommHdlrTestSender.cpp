@@ -43,20 +43,29 @@ int main( int argc, char *argv[] ) {
     std::cout << "\nFunction main(), main thread: " << MY_TID << std::endl;
 #endif
 
-    // Each of these objects will do its work on a separate
-    // native thread -
+    // Object will do its work on a separate native thread -
     MsgCommHdlr msgCommHdlrSender( string( "msgCommHdlrSender" ), sender, HOST, PORT );
-//    MsgCommHdlr msgCommHdlrReceiver( string( "msgCommHdlrReceiver" ), receiver,
-//                                     HOST, PORT, TEN_SECONDS, TEN_SECONDS );
 
-    msgCommHdlrSender.go(); // Internally, calls ThreadedWorker.startWorker();
-//    msgCommHdlrReceiver.go(); // Internally, calls ThreadedWorker.startWorker();
+    // Internally, calls ThreadedWorker.startWorker();
+    if( ! msgCommHdlrSender.go() ) {
+        printf( "MsgCommHdlrTestSender failed to launch Msg Comm Hdlr.  Exiting.\n" );
+        return 1;
+    }
 
-    std::cout << "\nSleeping main thread for 5 seconds.\n" << std::endl;
-    std::this_thread::sleep_for( std::chrono::milliseconds( 5000 ) );
+    std::string* pString1 = new std::string( "This is the first string to be x-ferred!!!" );
+
+    cout << "MsgCommHdlrTestSender ready to send message ...\n" << *pString1 << std::endl;
+
+    int sendResult = msgCommHdlrSender.enqueueMessage( pString1 );    
+    
+    std::cout << "Send result: " << sendResult << ". Exiting." << std::endl;
+  
+
+//    std::cout << "\nSleeping main thread for 5 seconds.\n" << std::endl;
+//    std::this_thread::sleep_for( std::chrono::milliseconds( 5000 ) );
 
     // (Yawn ...) now, direct one Worker to wrap it up
-    std::cout << "\nFunction main() shutting down MsgCommHdlr's.\n" << std::endl;
+//    std::cout << "\nFunction main() shutting down MsgCommHdlr's.\n" << std::endl;
     msgCommHdlrSender.signalShutdown( true );
     msgCommHdlrSender.join();
 //    msgCommHdlrReceiver.signalShutdown( true );
@@ -67,5 +76,6 @@ int main( int argc, char *argv[] ) {
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 
     return 0;
-}
+
+} // End main(...)
 

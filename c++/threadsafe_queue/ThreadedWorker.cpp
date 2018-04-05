@@ -34,16 +34,17 @@
 #include <iostream>
 #include <chrono>
 
-/***********************************************************************
- * Make threadSleep static in order to be callable by anyone.
+/**************************************************************************
+ * threadSleep is declared static in .h in order to be callable by anyone.
  */
 void ThreadedWorker::threadSleep( const int milliseconds ) {
     std::this_thread::sleep_for( std::chrono::milliseconds( milliseconds ) );
     return;
+
 } // End threadSleep(...)
 
 
-/**********************************************************************/
+/**************************************************************************/
 ThreadedWorker::ThreadedWorker( const std::string instanceName ) :
     _pThread( NULL ), _shutdownSignaled( false ) {
 
@@ -53,12 +54,13 @@ ThreadedWorker::ThreadedWorker( const std::string instanceName ) :
 #endif
 
     _instanceName = instanceName;
+
 } // End ThreadedWorker(...)
 
 
-/**********************************************************************/
+/**************************************************************************/
 ThreadedWorker::~ThreadedWorker() {
-    // here in the destructor is a defensive shutdown - the instantiator of
+    // Here in the destructor is a defensive shutdown - the instantiator of
     // this object SHOULD call shutdown on it, but might NOT do so.  This
     // shutdown call is ALWAYS fired when this object is destructed (goes
     // out of scope whatever). But this can safely be a redundant call for
@@ -89,10 +91,10 @@ ThreadedWorker::~ThreadedWorker() {
 } // End ~ThreadedWorker()
 
 
-/***********************************************************************
- * ThreadedWorker::startWorker() is designated 'final' to
- * insure that no override disrupts the internal thread
- * mgmt logic here.  Returns true if thread was launched.
+/**************************************************************************
+ * ThreadedWorker::startWorker() is designated 'final' to insure that no
+ * override disrupts the internal thread mgmt logic here.  Returns true
+ * if thread was launched; false if it was already running.
  */
 bool ThreadedWorker::startWorker() {
 
@@ -140,7 +142,7 @@ bool ThreadedWorker::startWorker() {
 } // End startWorker()
 
 
-/**********************************************************************/
+/**************************************************************************/
 void ThreadedWorker::doShutdown() {
 
 #ifdef DEBUG_THREADEDWORKER
@@ -161,9 +163,9 @@ void ThreadedWorker::doShutdown() {
     if (_pThread == NULL) {
 
 #ifdef DEBUG_THREADEDWORKER
-        std::cout << "Internal thread pointer found NULL (redundant safety check), object "
-                  << _instanceName << std::endl
-                  << "Without further ado, exiting, releasing lifecycle mutex"
+        std::cout << "A redundant safety check found the internal thread pointer NULL."
+                  << std::endl << "Releasing object "
+                  << _instanceName << " lifecycle mutex"
                   << ", on thread " << MY_TID << std::endl;
 #endif
 
@@ -187,13 +189,14 @@ void ThreadedWorker::doShutdown() {
 } // End doShutdown()
 
 
-/**********************************************************************/
+/**************************************************************************/
 const std::string ThreadedWorker::getInstanceName() {
     return _instanceName;
+
 } // End getInstanceName()
 
 
-/**********************************************************************/
+/**************************************************************************/
 void ThreadedWorker::signalShutdown( const bool flag ) {
 
 #ifdef DEBUG_THREADEDWORKER
@@ -212,10 +215,11 @@ const bool ThreadedWorker::isShutdownSignaled() {
 #endif
 
     return _shutdownSignaled;
+
 } // End isShutdownSignaled()
 
 
-/***********************************************************************
+/**************************************************************************
  * A semantic overloading of the term 'join' to lend more familiarity
  * to the usage of this abstract base class ...
  */

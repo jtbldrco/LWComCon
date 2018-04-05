@@ -29,8 +29,9 @@
 
 #include "ThreadSafeMsgPtrQueue.h"
 
-/*
- * Implementation of MsgCommHdlr derived from ThreadedWorker.
+/**************************************************************************
+ * Implementation of MsgCommHdlr derived from ThreadedWorker (ie, must
+ * follow that design pattern).
  */
 
 #define RECV_MESSAGE_BUF_LEN 1024
@@ -63,7 +64,7 @@ public:
     std::string* dequeueMessage(); // Returns a pointer to std::string
 
     // Receives a pointer to a heap-based std::string.  String WILL
-    // BE DELETE after its content is sent over the network.
+    // BE DELETED when and if its content is sent over the network.
     int enqueueMessage( std::string *msg );
 
 protected:
@@ -91,16 +92,18 @@ private:
     // Receives a buffer from the network and new's an std::string
     // and stores a pointer to it in the queue
     int doRecvAndEnqueueMessage();
-    int doRecvAndEnqueueMessageWto( const int connection_to_secs,
-                                    const int read_to_secs,
-                                    int socketReadShutdownFlag);
+    int doRecvAndEnqueueMessage( const int connection_to_secs,
+                                 const int read_to_secs);
 
     char _receiveBuf[ RECV_MESSAGE_BUF_LEN ];
 
     int _connectTimeout;
     int _readTimeout;
+    
+    // Link between this class and the C api recv call to
+    // communicate shutdowns
     int _socketReadShutdownFlag;
 
-};
+}; // End class MsgCommHdlr : public ThreadedWorker
 
 #endif /* SRC_MSGCOMMHDLR_H_ */

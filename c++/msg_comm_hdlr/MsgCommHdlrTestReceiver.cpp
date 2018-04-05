@@ -29,13 +29,15 @@
 
 #include "MsgCommHdlr.h"
 
+#include "ThreadedWorker.h"
+
 #include <iostream>
 #include <stdio.h>
 
 #define HOST "localhost"
 #define PORT 16273
 
-#define TEN_SECONDS 10
+#define CONNECT_TIMEOUT_SECS 10
 
 int main( int argc, char *argv[] ) {
 
@@ -43,22 +45,35 @@ int main( int argc, char *argv[] ) {
     std::cout << "\nFunction main(), main thread: " << MY_TID << std::endl;
 #endif
 
-    // Each of these objects will do its work on a separate
-    // native thread -
-//    MsgCommHdlr msgCommHdlrSender( string( "msgCommHdlrSender" ), sender, HOST, PORT );
+    // Object will do its work on a separate native thread -
     MsgCommHdlr msgCommHdlrReceiver( string( "msgCommHdlrReceiver" ), receiver,
-                                     HOST, PORT, TEN_SECONDS, TEN_SECONDS );
+                                     HOST, PORT, CONNECT_TIMEOUT_SECS,
+                                     CONNECT_TIMEOUT_SECS );
 
-//    msgCommHdlrSender.go(); // Internally, calls ThreadedWorker.startWorker();
-    msgCommHdlrReceiver.go(); // Internally, calls ThreadedWorker.startWorker();
+    // Internally, calls ThreadedWorker.startWorker();
+    if( ! msgCommHdlrReceiver.go() ) {
+        printf( "MsgCommHdlrTestReceiver failed to launch Msg Comm Hdlr.  Exiting.\n" );
+        return 1;
+    } else {
+        printf( "MsgCommHdlrTestReceiver ready to receive and print messages ...\n" );
+    }
 
-    std::cout << "\nSleeping main thread for 5 seconds.\n" << std::endl;
-    std::this_thread::sleep_for( std::chrono::milliseconds( 5000 ) );
+    printf( "Sleeping 10 seconds allowing send to come in ...\n" );
+    ThreadedWorker::threadSleep(10000);
 
-    // (Yawn ...) now, direct one Worker to wrap it up
-    std::cout << "\nFunction main() shutting down MsgCommHdlr's.\n" << std::endl;
-//    msgCommHdlrSender.signalShutdown( true );
-//    msgCommHdlrSender.join();
+    int readCount = 0; 
+    int totalReadCount = 10; 
+    while( readCount < totalReadCount ) {
+        printf( "readCount now at: %d\n", ++readCount );
+        std::string* pStr = msgCommHdlrReceiver.dequeueMessage();    
+        if( NULL == pStr ) {
+            std::cout << "\n\n\n\nNo message on queue (returned NULL).  Repeating ...\n" << std::endl;
+        } else {
+            std::cout << "\n\n\n\nDequeued string: " << *pStr << ".\n\n\n\n" << std::endl;
+            delete pStr;
+        }
+    }
+  
     msgCommHdlrReceiver.signalShutdown( true );
     msgCommHdlrReceiver.join();
 
@@ -67,5 +82,6 @@ int main( int argc, char *argv[] ) {
     std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
 
     return 0;
-}
+
+} // End main(...)
 

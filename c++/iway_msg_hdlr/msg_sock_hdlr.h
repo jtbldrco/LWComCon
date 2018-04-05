@@ -79,8 +79,9 @@ extern "C" {
 // socket_listen_timeout_secs.  Second, once a client connects, if its message send
 // gets delayed, the WTO function can timeout that read operation and return with 
 // appropriate error code.  Each of these two timeout durations can be individually set
-// (in units of seconds).  Finally, if the client read times out, the state of the
-// receive buffer is undefined.  Check the function return value as defined above.
+// (in units of seconds). A value of zero (0) disables that timeout.
+// Finally, if the client read times out, the state of the receive buffer is undefined.
+// Check the function return value against the results as defined above.
 int open_msh_recv_wto( const int list_port_num, char message_buf[], const int message_buf_len,
                        int socket_listen_timeout_secs, int socket_cli_timeout_secs, int *shutdownFlag );
 int open_msh_recv( const int list_port_num, char message_buf[], const int message_buf_len );

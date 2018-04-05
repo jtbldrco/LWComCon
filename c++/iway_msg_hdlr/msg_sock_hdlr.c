@@ -190,8 +190,8 @@ int open_msh_recv_wto( const int list_port_num, char message_buf[], const int me
             if( errno == EWOULDBLOCK || errno == EAGAIN ) {
 
 #ifdef DEBUG_MSH
-                printf( "Receiver timed out after %d sec wait for client connection.\n"
-                        "Shutdown signaled: %s\n", socket_listen_timeout_secs, (*shutdownFlag ? "true" : "false") );
+                printf( "Fn open_msh_recv_wto() timed out after %d sec wait for client connection.\n"
+                        "Fn open_msh_recv_wto(), is shutdown signaled? %s\n", socket_listen_timeout_secs, (*shutdownFlag ? "true" : "false") );
 #endif
 
                 // The client connect accept timed out, is a return/shutdown signaled?
