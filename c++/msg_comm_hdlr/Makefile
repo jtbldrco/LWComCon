@@ -14,9 +14,7 @@ PROGRAMNAMES = $(PROG1) $(PROG2)
 ## TODO - create library of ThreadedWorker and ThreadMapper, then access that
 ## from here; add include paths to pick up the headers for those classes
 
-########## PROG1_OBJS = MsgCommHdlrTestSender.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o ThreadSafeMsgPtrQueue.o
 PROG1_OBJS = MsgCommHdlrTestSender.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
-########## PROG2_OBJS = MsgCommHdlrTestReceiver.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o ThreadSafeMsgPtrQueue.o
 PROG2_OBJS = MsgCommHdlrTestReceiver.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
 
 # Compilers
@@ -25,13 +23,13 @@ CXX = g++
 
 
 # Compiler Flags: C, C++, and Preprocessor
-CFLAGS += -pthread \
-          -I./ \
-          -I../iway_msg_hdlr/ \
-          -I../iway_logger/ \
-          -I/usr/local/include
-
 CFLAGS += -g -O0
+CFLAGS += -pthread \
+          -I../iway_msg_hdlr \
+          -I../iway_logger \
+          -I./ \
+          -I/usr/local/include 
+
 CXXFLAGS += -std=c++0x
 
 # OPTIONAL - enable debugging to track internal execution flow
@@ -61,10 +59,10 @@ $(PROG2):	$(PROG2_OBJS)
 	$(CXX) -o $@ $^ $(PN_LDFLAGS)
 
 %.o:	$(PROJECT_ROOT)%.cpp $(PROJECT_ROOT)%.h Makefile
-	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) $< -o $@
 
 %.o:	$(PROJECT_ROOT)%.c $(PROJECT_ROOT)%.h Makefile
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 clean:
 	rm -fr $(PROGRAMNAMES) $(PROG1_OBJS) $(PROG2_OBJS)

@@ -28,7 +28,6 @@
  */
 
 #include "MsgCommHdlr.h"
-
 #include "ThreadedWorker.h"
 
 #include <iostream>
@@ -37,7 +36,7 @@
 #define HOST "localhost"
 #define PORT 16273
 
-#define CONNECT_TIMEOUT_SECS 10
+#define CONNECT_TIMEOUT_SECS 15
 
 int main( int argc, char *argv[] ) {
 
@@ -65,14 +64,19 @@ int main( int argc, char *argv[] ) {
     int totalReadCount = 10; 
     while( readCount < totalReadCount ) {
         printf( "readCount now at: %d\n", ++readCount );
+        std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
         std::string* pStr = msgCommHdlrReceiver.dequeueMessage();    
         if( NULL == pStr ) {
             std::cout << "\n\n\n\nNo message on queue (returned NULL).  Repeating ...\n" << std::endl;
+            std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
         } else {
             std::cout << "\n\n\n\nDequeued string: " << *pStr << ".\n\n\n\n" << std::endl;
+            std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
             delete pStr;
         }
     }
+    std::cout << "\n\n\n\nThe readCount loop expired.  Signaling shutdown.\n" << std::endl;
+    std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
   
     msgCommHdlrReceiver.signalShutdown( true );
     msgCommHdlrReceiver.join();

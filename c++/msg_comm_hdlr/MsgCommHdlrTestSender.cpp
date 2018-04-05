@@ -54,11 +54,12 @@ int main( int argc, char *argv[] ) {
 
     std::string* pString1 = new std::string( "This is the first string to be x-ferred!!!" );
 
-    cout << "MsgCommHdlrTestSender ready to send message ...\n" << *pString1 << std::endl;
+    cout << "MsgCommHdlrTestSender ready to send message - enqueuing ...\n" << *pString1 << std::endl;
 
     int sendResult = msgCommHdlrSender.enqueueMessage( pString1 );    
     
-    std::cout << "Send result: " << sendResult << ". Exiting." << std::endl;
+    std::cout << "Send result: " << sendResult << std::endl
+              << ".  Exiting." << std::endl;
   
 
 //    std::cout << "\nSleeping main thread for 5 seconds.\n" << std::endl;

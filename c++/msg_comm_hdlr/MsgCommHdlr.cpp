@@ -31,20 +31,28 @@
  */
 
 #include "MsgCommHdlr.h"
-#include <iostream>
 #include "msg_sock_hdlr.h"
+#include <iostream>
 
 #define MAINLOOP_SEND_SLEEP_SECS 3
+
+static std::string twPreamble( "ThreadedWorker_of_" );
+static std::string mpqPreamble( "MsgPtrQueue_of_" );
 
 /**************************************************************************/
 MsgCommHdlr::MsgCommHdlr( const std::string instanceName,
                           const MCH_Function function,
                           const std::string host, const int port ) :
-    ThreadedWorker( instanceName ), _threadRunning( false ),
-    _function( function ), _msgPtrQueue( instanceName ), 
-    _host( host ), _port( port )
+    ThreadedWorker( twPreamble+instanceName ),
+    _msgPtrQueue( mpqPreamble+instanceName ),
+    _threadRunning( false ), _function( function ), _host( host ), _port( port )
 
-{} // End MsgCommHdlr(...)
+{
+//    std::string twPreamble( "ThreadedWorker_for_" );
+//    ThreadWorker( twPreamble + instanceName );
+//    std::string mpqPreamble( "MsgPtrQueue_for_" );
+//    _msgPtrQueue( mpqPreamble + instanceName );
+} // End MsgCommHdlr(...)
 
 
 /**************************************************************************/
@@ -204,7 +212,8 @@ void MsgCommHdlr::mainLoop() {
         
 #ifdef DEBUG_MSGCOMMHDLR
     std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
-              << ", on thread " << MY_TID << " rec'd shutdown signal." << std::endl;
+              << ", on thread " << MY_TID
+              << " rec'd shutdown signal, exited while()." << std::endl;
 #endif
 
     signalShutdown( true );
