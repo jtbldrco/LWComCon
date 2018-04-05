@@ -1,9 +1,9 @@
 # The Orderly Shutdown Pattern <img align="right" src="./images/iwaytechnology284x60.gif" />
 
-## A Multi-Threaded, TCP/IP Network-based, Inter-process Command/Control Design Pattern
+## A Multi-Threaded, TCP/IP Network-based, Inter-process Command/Control Design Pattern in C++ and Java
 
 MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
-<br/>(*originally published under Open Source License in December, 2002*)
+<br/>(*Java-only version originally published under Open Source License in December, 2002*)
 
 ## Orderly Shutdown Pattern Repository Overview
 
