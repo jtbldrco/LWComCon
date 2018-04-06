@@ -1,17 +1,11 @@
 PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-LIB_NAME = imsgsockhdlr
-FULL_LIB_NAME_A = lib$(LIB_NAME).a
-FULL_LIB_NAME_SO = lib$(LIB_NAME).so
 TEST_PROG1 = msg_sock_hdlr_test
-TEST_PROG2 = msg_sock_hdlr_test_wto
 
-
-BUILD_PRODUCTS = $(FULL_LIB_NAME_A) $(FULL_LIB_NAME_SO) $(TEST_PROG1) $(TEST_PROG2)
+BUILD_PRODUCTS = $(TEST_PROG1)
 
 LIB_OBJS = msg_sock_hdlr.o
 TEST_PROG1_OBJS = msg_sock_hdlr_test.o
-TEST_PROG2_OBJS = msg_sock_hdlr_test_wto.o
 
 # Compilers
 CC = gcc
@@ -19,12 +13,13 @@ CXX = g++
 
 
 # Compiler Flags: C, C++, and Preprocessor
-CFLAGS += -I../iway_logger/
+CFLAGS += -I../../iway_logger/
+CFLAGS += -I../
 CFLAGS += -g -O0 -fPIC
 
 CXXFLAGS += -std=c++0x
 
-LIB_DIR=.
+MSH_LIB_DIR=../
 
 # Optional compile flags for debugging -
 ##### CPPFLAGS += -DDEBUG -DDEBUG_MSH
@@ -36,24 +31,12 @@ CPPFLAGS += -DDEBUG -DDEBUG_MSH
 ##### CPPFLAGS += DEBUG_MSH_DELAY_CLIENT_SEND___WARNING_ADDS_WAITS_IN_SEND
 
 # Linker/Loader Flags
-PN_LDFLAGS = -L/usr/lib/x86_64-linux-gnu -L$(LIB_DIR)
+PN_LDFLAGS = -L/usr/lib/x86_64-linux-gnu -L$(MSH_LIB_DIR)
 
 all:	$(BUILD_PRODUCTS)
 
-install:	$(BUILD_PRODUCTS)
-	cp $(FULL_LIB_NAME_SO) /usr/lib
-
-$(FULL_LIB_NAME_A):	$(LIB_OBJS)
-	ar -cvq -o $(LIB_DIR)/$@ $<
-
-$(FULL_LIB_NAME_SO):	$(LIB_OBJS)
-	$(CC) -shared -o $(LIB_DIR)/$@ $<
-
 $(TEST_PROG1):	$(TEST_PROG1_OBJS)
-	$(CXX) -o $@ $^ -Wl,-rpath,$(LIB_DIR) -L$(LIB_DIR) -l $(LIB_NAME) $(PN_LDFLAGS)
-
-$(TEST_PROG2):	$(TEST_PROG2_OBJS)
-	$(CXX) -o $@ $^ -Wl,-rpath,$(LIB_DIR) -L$(LIB_DIR) -l $(LIB_NAME) $(PN_LDFLAGS)
+	$(CXX) -o $@ $^ -Wl,-rpath,$(MSH_LIB_DIR) -L$(MSH_LIB_DIR) -l $(LIB_NAME) $(PN_LDFLAGS)
 
 %.o:	$(PROJECT_ROOT)%.cpp
 	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
@@ -62,5 +45,5 @@ $(TEST_PROG2):	$(TEST_PROG2_OBJS)
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
 
 clean:
-	rm -fr $(BUILD_PRODUCTS) $(TEST_PROG1_OBJS) $(TEST_PROG2_OBJS) $(LIB_OBJS) $(FULL_LIB_NAME_A) $(FULL_LIB_NAME_SO)
+	rm -fr $(BUILD_PRODUCTS) $(TEST_PROG1_OBJS)
 
