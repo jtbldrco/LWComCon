@@ -3,8 +3,11 @@ PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 LIB_NAME = imsgsockhdlr
 FULL_LIB_NAME_A = lib$(LIB_NAME).a
 FULL_LIB_NAME_SO = lib$(LIB_NAME).so
+TEST_PROG1 = msg_sock_hdlr_test
+TEST_PROG2 = msg_sock_hdlr_test_wto
 
-BUILD_PRODUCTS = $(FULL_LIB_NAME_A) $(FULL_LIB_NAME_SO)
+
+BUILD_PRODUCTS = $(FULL_LIB_NAME_A) $(FULL_LIB_NAME_SO) $(TEST_PROG1) $(TEST_PROG2)
 
 LIB_OBJS = msg_sock_hdlr.o
 TEST_PROG1_OBJS = msg_sock_hdlr_test.o

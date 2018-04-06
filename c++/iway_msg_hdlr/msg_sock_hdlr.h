@@ -54,6 +54,8 @@ extern "C" {
 
 #include "iway_logger.h"
 
+#define MSH_SOCK_STRUCT_INVALID  -100
+
 #define MSH_MESSAGE_SENT         100
 #define MSH_MESSAGE_NOT_SENT     101
 #define MSH_MESSAGE_RECVD        102
@@ -61,6 +63,7 @@ extern "C" {
 #define MSH_MESSAGE_RECVD_OVERFLOW 104
 #define MSH_MESSAGE_RECV_TIMEOUT 105
 
+#define MSH_INVALID_SOCKSTRUCT   200
 #define MSH_ERROR_ILLEGAL_INPUT  201
 #define MSH_ERROR_GETADDRINFO    202
 #define MSH_ERROR_SETSOCKET      203
@@ -70,7 +73,70 @@ extern "C" {
 #define MSH_ERROR_SOCKCONNECT    207
 #define MSH_ERROR_SOCKACCEPT     208
 
-#define MSH_CONNECT_TIMEOUT      301
+#define MSH_LISTENER_CREATED     301
+#define MSH_CLIENT_CONNECTED     302
+#define MSH_CONNECT_TIMEOUT      303
+
+// Listener Socke
+typedef struct sock_struct_t { 
+    char *host; // Host IP/Domain-name (unused for listeners)
+    int port;   // Listener port num
+    int lsd;    // Listener Socket Descriptor (server only)
+    int csd;    // Client Socket Descriptor (for recv OR send)
+    int lto;    // Listener accept() timeout secs
+    int cto;    // Client t char *message_bufead() timeout secs
+    int valid;  // Internally valid (0=>true; 1=>false)
+    int result; // Operation return code
+} sock_struct_t;
+
+
+// Function sock_struct_init_recv does not use, manage or delete memory
+// pointed to by host.  Caller is responsible for that memory.
+sock_struct_t *sock_struct_init_recv( const char *host, const int port, 
+                                      const int lto, const int cto )
+{
+    sock_struct_t *s = malloc( sizeof(sock_struct_t) );
+    memset( s, 0, sizeof(sock_struct_t) );
+    if( host == NULL ) {
+        s->host = NULL;
+    } else {
+        int host_len = strlen( host ) + 1;
+        char *pHost = malloc( host_len );
+        memset( pHost, 0, host_len );
+        memcpy( pHost, host, host_len );
+        s->host = pHost;
+    }
+    s->port = port;
+    s->lto = lto;
+    s->cto = cto;
+    return s;
+} // End sock_struct_init_recv(...)
+
+sock_struct_t *sock_struct_init_send( const int port ) {
+    return sock_struct_init_recv( NULL, port, 0, 0 );
+} // End sock_struct_init_send()
+    
+void sock_struct_close_client( sock_struct_t *s ) {
+    if( s->csd != 0 ) {
+        close( s->csd );
+        s->csd = 0;
+    }
+}
+
+// 'With Time-Out' (_wto) form actually does two things - first, the server (listener) is
+// capable of listening for a client connection with periodic checks to see if there
+void sock_struct_destroy( sock_struct_t *s ) {
+    if( s->lsd != 0 ) {
+        close( s->lsd );
+        s->lsd = 0;
+    }
+    if( s->csd != 0 ) {
+        close( s->csd );
+        s->csd = 0;
+    }
+    free( s->host );
+    free( s );
+}
 
 // 'With Time-Out' (_wto) form actually does two things - first, the server (listener) is
 // capable of listening for a client connection with periodic checks to see if there
@@ -82,10 +148,13 @@ extern "C" {
 // (in units of seconds). A value of zero (0) disables that timeout.
 // Finally, if the client read times out, the state of the receive buffer is undefined.
 // Check the function return value against the results as defined above.
-int open_msh_recv_wto( const int list_port_num, char message_buf[], const int message_buf_len,
-                       int socket_listen_timeout_secs, int socket_cli_timeout_secs, int *shutdownFlag );
-int open_msh_recv( const int list_port_num, char message_buf[], const int message_buf_len );
-int open_msh_send( const char host[], const int list_port_num, const char *message_buf );
+sock_struct_t *msg_sock_hdlr_open_for_recv( sock_struct_t *sock_struct );
+sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct, int *shutdownFlag );
+sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct, char *message_buf,
+                                   const int message_buf_len, int *shutdownFlag );
+
+sock_struct_t *msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct );
+sock_struct_t *msg_sock_hdlr_send( sock_struct_t *sock_struct, const char *message_buf );
 
 //////////////////////////////////////////////////////////////////
 #ifdef __cplusplus
