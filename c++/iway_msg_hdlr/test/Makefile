@@ -7,6 +7,7 @@ BUILD_PRODUCTS = $(TEST_PROG1)
 TEST_PROG1_OBJS = msg_sock_hdlr_test_01.o
 
 LIB_NAME_SO = libimsgsockhdlr.so
+LIB_NAME = imsgsockhdlr
 
 # Compilers
 CC = gcc
@@ -20,7 +21,7 @@ CFLAGS += -g -O0 -fPIC
 
 CXXFLAGS += -std=c++0x
 
-MSH_LIB_DIR=$(ORIGIN)/../
+MSH_LIB_DIR=./
 
 # Optional compile flags for debugging -
 ##### CPPFLAGS += -DDEBUG -DDEBUG_MSH
@@ -37,7 +38,7 @@ PN_LDFLAGS = -L/usr/lib/x86_64-linux-gnu -L$(MSH_LIB_DIR)
 all:	$(BUILD_PRODUCTS)
 
 $(TEST_PROG1):	$(TEST_PROG1_OBJS)
-	$(CXX) -o $@ $^ $(PN_LDFLAGS) -Wl,-rpath,$(MSH_LIB_DIR) -L$(MSH_LIB_DIR) -l $(LIB_NAME_SO)
+	$(CXX) -o $@ $^ $(PN_LDFLAGS) -Wl,-rpath,$(MSH_LIB_DIR) -L$(MSH_LIB_DIR) -l $(LIB_NAME)
 
 %.o:	$(PROJECT_ROOT)%.cpp
 	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<

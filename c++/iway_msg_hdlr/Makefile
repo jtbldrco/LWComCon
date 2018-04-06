@@ -52,10 +52,10 @@ $(TEST_PROG1):	$(TEST_PROG1_OBJS)
 $(TEST_PROG2):	$(TEST_PROG2_OBJS)
 	$(CXX) -o $@ $^ -Wl,-rpath,$(LIB_DIR) -L$(LIB_DIR) -l $(LIB_NAME) $(PN_LDFLAGS)
 
-%.o:	$(PROJECT_ROOT)%.cpp
+%.o:	$(PROJECT_ROOT)%.cpp $(PROJECT_ROOT)%.h
 	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
-%.o:	$(PROJECT_ROOT)%.c
+%.o:	$(PROJECT_ROOT)%.c $(PROJECT_ROOT)%.h
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
 
 clean:

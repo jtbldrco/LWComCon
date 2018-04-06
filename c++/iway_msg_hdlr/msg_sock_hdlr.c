@@ -204,7 +204,6 @@ sock_struct_t * msg_sock_hdlr_listen( sock_struct_t *sock_struct,
 {
     // First, do some simple validation on the input structure -
     if( sock_struct->lsd == 0 ) sock_struct->valid = 0;
-    if( sock_struct->csd != 0 ) sock_struct->valid = 0;
     if( sock_struct->lto < 0 ) sock_struct->valid = 0;
     if( sock_struct->cto < 0 ) sock_struct->valid = 0;
 
@@ -280,7 +279,7 @@ sock_struct_t * msg_sock_hdlr_listen( sock_struct_t *sock_struct,
         }
 
 #ifdef DEBUG_MSH
-        printf( "Listener received a connection from client ...\n" );
+        printf( "Listener received a connection from client (%d) ...\n", local_client_sd );
 #endif
  
         if( set_cli_timeout ) {

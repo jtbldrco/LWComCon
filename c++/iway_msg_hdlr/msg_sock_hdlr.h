@@ -85,9 +85,26 @@ typedef struct sock_struct_t {
     int csd;    // Client Socket Descriptor (for recv OR send)
     int lto;    // Listener accept() timeout secs
     int cto;    // Client t char *message_bufead() timeout secs
-    int valid;  // Internally valid (0=>true; 1=>false)
+    int valid;  // Internally valid (1=>true; 0=>false)
     int result; // Operation return code
 } sock_struct_t;
+
+
+void sock_struct_dump( const sock_struct_t *s )
+{
+    if( s == NULL ) return;
+    if( s->host != NULL ) 
+        printf( "Host: %s\n", s->host );
+    else
+        printf( "Host: NULL\n" );
+    printf( "Port: %d\n", s->port );
+    printf( "LSD: %d\n", s->lsd ); 
+    printf( "CSD: %d\n", s->csd ); 
+    printf( "LTO: %d\n", s->lto ); 
+    printf( "CTO: %d\n", s->cto ); 
+    printf( "Valid: %s\n", (s->valid==1 ? "true" : "false") ); 
+    printf( "Result: %d\n", s->result ); 
+}
 
 
 // Function sock_struct_init_recv does not use, manage or delete memory
@@ -109,6 +126,7 @@ sock_struct_t *sock_struct_init_recv( const char *host, const int port,
     s->port = port;
     s->lto = lto;
     s->cto = cto;
+    s->valid = 1;
     return s;
 } // End sock_struct_init_recv(...)
 
