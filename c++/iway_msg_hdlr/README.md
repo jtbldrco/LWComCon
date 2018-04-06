@@ -1,5 +1,7 @@
 # iWay C/C++ Message Handler Library <img style="float: right;" src="../../images/iwaytechnology284x60.gif" />
 
+## **This is presently undergoing a major overhaul - the README is not up to date, the tests are not up to date, other directories dependent upon this library have not been updated.**
+
 The iWay C/C++ message handler library is a fast and convenient way to support *character-string based* TCP Messaging between two hosts with the following capabilities:
 
 - a stripped down *in process* server receiver interface that removes heavier-weight server fork() behavior,
