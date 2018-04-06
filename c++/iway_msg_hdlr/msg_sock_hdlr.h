@@ -112,8 +112,8 @@ sock_struct_t *sock_struct_init_recv( const char *host, const int port,
     return s;
 } // End sock_struct_init_recv(...)
 
-sock_struct_t *sock_struct_init_send( const int port ) {
-    return sock_struct_init_recv( NULL, port, 0, 0 );
+sock_struct_t *sock_struct_init_send( const char *host, const int port ) {
+    return sock_struct_init_recv( host, port, 0, 0 );
 } // End sock_struct_init_send()
     
 void sock_struct_close_client( sock_struct_t *s ) {

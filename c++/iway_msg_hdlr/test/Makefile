@@ -1,11 +1,12 @@
 PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-TEST_PROG1 = msg_sock_hdlr_test
+TEST_PROG1 = msg_sock_hdlr_test_01
 
 BUILD_PRODUCTS = $(TEST_PROG1)
 
-LIB_OBJS = msg_sock_hdlr.o
-TEST_PROG1_OBJS = msg_sock_hdlr_test.o
+TEST_PROG1_OBJS = msg_sock_hdlr_test_01.o
+
+LIB_NAME_SO = libimsgsockhdlr.so
 
 # Compilers
 CC = gcc
@@ -19,7 +20,7 @@ CFLAGS += -g -O0 -fPIC
 
 CXXFLAGS += -std=c++0x
 
-MSH_LIB_DIR=../
+MSH_LIB_DIR=$(ORIGIN)/../
 
 # Optional compile flags for debugging -
 ##### CPPFLAGS += -DDEBUG -DDEBUG_MSH
@@ -36,7 +37,7 @@ PN_LDFLAGS = -L/usr/lib/x86_64-linux-gnu -L$(MSH_LIB_DIR)
 all:	$(BUILD_PRODUCTS)
 
 $(TEST_PROG1):	$(TEST_PROG1_OBJS)
-	$(CXX) -o $@ $^ -Wl,-rpath,$(MSH_LIB_DIR) -L$(MSH_LIB_DIR) -l $(LIB_NAME) $(PN_LDFLAGS)
+	$(CXX) -o $@ $^ $(PN_LDFLAGS) -Wl,-rpath,$(MSH_LIB_DIR) -L$(MSH_LIB_DIR) -l $(LIB_NAME_SO)
 
 %.o:	$(PROJECT_ROOT)%.cpp
 	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<

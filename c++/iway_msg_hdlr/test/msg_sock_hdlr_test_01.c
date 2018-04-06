@@ -23,7 +23,7 @@
  **************************************************************************/
 
 /*
- * msg_sock_hdlr_test_wto.c
+ * msg_sock_hdlr_test_01.c
  *
  * Program to test Msg Hdlr - to be used as both
  * sender AND receiver (two separate console windows).
@@ -44,7 +44,7 @@
 // 1) It's important to test behavior of the receiver when the sender
 //    sends too long a message, so make send max bigger.  The test
 //    program enforces send size limit again MAX_SEND, NOT against
-//    MAX_RECV.
+//    MAX_RECV_MSG_LEN.
 // 2) The receiver logic in the library *cannot* assume that a sender
 //    has null-byte terminated its sent message.  SO, the receiver
 //    must append to that last read buffer a null byte.  If that is
@@ -68,19 +68,19 @@
 #define MAX_RECV_MSG_LEN 64
 
 // Special boundary test functions
-int send_boundary_condition_test( char host[], int port );
-int recv_boundary_condition_test( char host[], int port );
+int send_boundary_condition_test( const char host[], const int port );
+int recv_boundary_condition_test( char host[], const int port );
 
 
 void show_usage( const char *errmsg ) {
     printf( "Command line args error: %s\n", errmsg );
-    printf( "  usage: ./msg_sock_hdlr_test_wto ( send <host> | receive ) <port> [ message ]\n" );
-    printf( "example: ./msg_sock_hdlr_test_wto receive 16273\n" );
-    printf( "example: ./msg_sock_hdlr_test_wto send localhost 16273\n" );
-    printf( "example: ./msg_sock_hdlr_test_wto send localhost 16273 \"This is a custom send message\" \n" );
+    printf( "  usage: ./msg_sock_hdlr_test_01 ( send <host> | receive ) <port> [ message ]\n" );
+    printf( "example: ./msg_sock_hdlr_test_01 receive 16273\n" );
+    printf( "example: ./msg_sock_hdlr_test_01 send localhost 16273\n" );
+    printf( "example: ./msg_sock_hdlr_test_01 send localhost 16273 \"This is a custom send message\" \n" );
     printf( "Max send msg length is %d.\n", MAX_SEND_MSG_LEN );
     printf( "Max recv msg length is %d.\n", MAX_RECV_MSG_LEN );
-    printf( "Special boundary condition test: ./msg_sock_hdlr_test_wto [ sendbct | recvbct ] ... defaults to localhost:16273\n" );
+    printf( "Special boundary condition test: ./msg_sock_hdlr_test_01 [ sendbct | recvbct ] ... defaults to localhost:16273\n" );
     return;
 }
 
@@ -148,27 +148,37 @@ int main( int argc, char *argv[] ) {
         }
 
         // Send the message
-        printf( "Starting test as msg sender sending <%s> to <%s:%d>\n", send_msg, host, port );
-        int send_result = open_msh_send( host, port, send_msg );
-        if( MSH_MESSAGE_SENT == send_result ) {
+        printf( "Starting test as msg sender sending <%s> to <%s:%d>\n",
+                send_msg, host, port );
+        
+        sock_struct_t *sock_struct = sock_struct_init_send( host, port ); 
+        sock_struct = msg_sock_hdlr_open_for_send( sock_struct );
+        sock_struct = msg_sock_hdlr_send( sock_struct, send_msg );
+        if( MSH_MESSAGE_SENT == sock_struct->result ) {
             printf( "Message successfully sent.\n" );
         } else {
             printf( "Send result indicates failure (did you first start a 'receive' process?)."
-                    "\nResult: %d\n", send_result );
+                    "\nResult: %d\n", sock_struct->result );
         }
+        sock_struct_destroy( sock_struct ); // Required to free internal memory
 
     } else {
+
         // Test program invoked as receiver - listen for message
-        printf( "Starting test as msg receiver (max recv len <%d>) on port <%d>\n", MAX_RECV_MSG_LEN, port );
+        printf( "Starting test as msg receiver (max recv len <%d>) on port <%d>\n",
+                MAX_RECV_MSG_LEN, port );
 
-        // Cause this test to cycle the recv time-out loop but never exit it
-        int shutdown = 0;
-        int recv_result = open_msh_recv_wto( port, recv_msg, MAX_RECV_MSG_LEN, 6, 10, &shutdown );
+        int shutdownFlag = 0; // Do not just timeout & return
+        sock_struct_t *sock_struct = sock_struct_init_recv( NULL, port, 6, 10 );
+        sock_struct = msg_sock_hdlr_open_for_recv( sock_struct );
+        sock_struct = msg_sock_hdlr_listen( sock_struct, &shutdownFlag );
+        sock_struct = msg_sock_hdlr_recv( sock_struct, recv_msg,
+                                          MAX_RECV_MSG_LEN, &shutdownFlag );
 
-        if( MSH_MESSAGE_RECVD == recv_result ) {
+        if( MSH_MESSAGE_RECVD == sock_struct->result ) {
             printf( "Message successfully received.\n" );
         } else {
-            printf( "Receive result indicates failure.  Result: %d\n", recv_result );
+            printf( "Receive result indicates failure.  Result: %d\n", sock_struct->result );
         }
         printf( "Rec'd message: <%s>\n", recv_msg );
 
@@ -180,11 +190,13 @@ int main( int argc, char *argv[] ) {
 
 // Using macro allows char array init with { 0 }
 #define MAX_SEND 17
-int send_boundary_condition_test( char host[], int port ) {
+int send_boundary_condition_test( const char host[], const int port )
+{
+    // The 'client/sender' in this bct
 
     // HARD CODE a message with NO null-byte termination included in the
     // array up to the size of the receiver-side input buffer and send that
-    // to a receiver with MAX_RECV_MSG_LEN of 16 -- see what happpens then.
+    // to a receiver with MAX_RECV msg len of 16 -- see what happpens then.
     // Note, send() REQUIRES a null-terminated string so we're over-sizing
     // the send buffer by one.
     char bctrecv_msg[ MAX_SEND ] = { 0 };
@@ -208,21 +220,27 @@ int send_boundary_condition_test( char host[], int port ) {
 
     printf( "Sending max-recv-len (16-char), with no null in first 16 chars.\n" );
     printf( "Should be successfully sent, but rejected as overflow by receiver.\n" );
-    int send_result = open_msh_send( host, port, bctrecv_msg );
-    if( MSH_MESSAGE_SENT == send_result ) {
+
+    sock_struct_t *sock_struct = sock_struct_init_send( host, port ); 
+    sock_struct = msg_sock_hdlr_open_for_send( sock_struct );
+    sock_struct = msg_sock_hdlr_send( sock_struct, bctrecv_msg );
+    if( MSH_MESSAGE_SENT == sock_struct->result ) {
         printf( "Message successfully sent.\n" );
     } else {
         printf( "Send result indicates failure (did you first start a 'recvbct' process?).\n" );
-        printf( "Result: %d\n", send_result );
+        printf( "Result: %d\n", sock_struct->result );
     }
 
+    sock_struct_destroy( sock_struct ); // Required to free internal memory
     return 0;
 } // End send_boundary_condition_test(...)
     
 
 // Using macro allows char array init with { 0 }
 #define MAX_RECV 16
-int recv_boundary_condition_test( char host[], int port ) {
+int recv_boundary_condition_test( char host[], const int port )
+{
+    // The 'server/receiver' in this bct
 
     // Receive a HARD CODED message with NO null-byte termination with
     // max recv len of 16 -- see what happpens then.
@@ -231,15 +249,20 @@ int recv_boundary_condition_test( char host[], int port ) {
     printf( "Set to receive max-recv-len (16-char), NON-null-terminated message.\n" );
     printf( "Should be rejected as overflow by receiver - overflow (return code %d).\n",
             MSH_MESSAGE_RECVD_OVERFLOW );
-    int shutdown = 1;
-    int recv_result = open_msh_recv_wto( port, bctrecv_msg, MAX_RECV, 10, 10, &shutdown );
-    if( MSH_MESSAGE_RECVD == recv_result ) {
+    int shutdownFlag = 1;
+    sock_struct_t *sock_struct = sock_struct_init_recv( NULL, port, 10, 10 );
+    sock_struct = msg_sock_hdlr_open_for_recv( sock_struct );
+    sock_struct = msg_sock_hdlr_listen( sock_struct, &shutdownFlag );
+    sock_struct = msg_sock_hdlr_recv( sock_struct, bctrecv_msg, MAX_RECV, &shutdownFlag );
+
+    if( MSH_MESSAGE_RECVD == sock_struct->result ) {
         printf( "Message successfully received.\n" );
     } else {
-        printf( "Receive result indicates failure.  Result: %d\n", recv_result );
+        printf( "Receive result indicates failure.  Result: %d\n", sock_struct->result );
     }
     printf( "Rec'd message: <%s>\n", bctrecv_msg );
 
+    sock_struct_destroy( sock_struct ); // Required to free internal memory
     return 0;
 } // End recv_boundary_condition_test(...)
 
