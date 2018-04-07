@@ -28,7 +28,6 @@ LIB_DIR=.
 
 # Optional compile flags for debugging -
 ##### CPPFLAGS += -DDEBUG -DDEBUG_MSH
-CPPFLAGS += -DDEBUG -DDEBUG_MSH
 
 # Enable test case: 15-sec sleep delay between
 # client socket connect and socket send

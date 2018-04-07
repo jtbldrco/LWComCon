@@ -56,7 +56,7 @@ extern "C" {
 
 
 
-char * MSH_NAME( const int value ) {
+char * MSH_DEFINE_NAME( const int value ) {
 
     switch ( value ) {
     case 0:
@@ -176,7 +176,7 @@ void sock_struct_dump( const sock_struct_t *s )
     printf( "LTO: %d\n", s->lto ); 
     printf( "CTO: %d\n", s->cto ); 
     printf( "Valid: %s\n", (s->valid==1 ? "true" : "false") ); 
-    printf( "Result: %s\n", MSH_NAME( s->result ) ); 
+    printf( "Result: %s\n", MSH_DEFINE_NAME( s->result ) ); 
 }
 
 
