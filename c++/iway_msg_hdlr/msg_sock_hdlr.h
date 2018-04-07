@@ -54,6 +54,79 @@ extern "C" {
 
 #include "iway_logger.h"
 
+
+
+char * MSH_NAME( const int value ) {
+
+    switch ( value ) {
+    case 0:
+        return "MSH_VALUE_UNSET";
+
+    case -100:
+        return "MSH_SOCK_STRUCT_INVALID";
+
+    case 100:
+        return "MSH_MESSAGE_SENT";
+
+    case 101:
+        return "MSH_MESSAGE_NOT_SENT";
+
+    case 102:
+        return "MSH_MESSAGE_RECVD";
+
+    case 103:
+        return "MSH_MESSAGE_NOT_RECVD";
+
+    case 104:
+        return "MSH_MESSAGE_RECVD_OVERFLOW";
+
+    case 105:
+        return "MSH_MESSAGE_RECV_TIMEOUT";
+
+
+    case 200:
+        return "MSH_INVALID_SOCKSTRUCT";
+
+    case 201:
+        return "MSH_ERROR_ILLEGAL_INPUT";
+
+    case 202:
+        return "MSH_ERROR_GETADDRINFO";
+
+    case 203:
+        return "MSH_ERROR_SETSOCKET";
+
+    case 204:
+        return "MSH_ERROR_SETSOCKOPT";
+
+    case 205:
+        return "MSH_ERROR_SOCKBIND";
+
+    case 206:
+        return "MSH_ERROR_SOCKLISTEN";
+
+    case 207:
+        return "MSH_ERROR_NOCONNECT";
+
+    case 208:
+        return "MSH_ERROR_SOCKACCEPT";
+
+    case 301:
+        return "MSH_LISTENER_CREATED";
+
+    case 302:
+        return "MSH_CLIENT_CONNECTED";
+
+    case 303:
+        return "MSH_CONNECT_TIMEOUT";
+
+    default:
+        return "MSH_VALUE_UNKNOWN";
+
+    }
+}
+
+
 #define MSH_SOCK_STRUCT_INVALID  -100
 
 #define MSH_MESSAGE_SENT         100
@@ -70,7 +143,7 @@ extern "C" {
 #define MSH_ERROR_SETSOCKOPT     204
 #define MSH_ERROR_SOCKBIND       205
 #define MSH_ERROR_SOCKLISTEN     206
-#define MSH_ERROR_SOCKCONNECT    207
+#define MSH_ERROR_NOCONNECT      207
 #define MSH_ERROR_SOCKACCEPT     208
 
 #define MSH_LISTENER_CREATED     301
@@ -103,7 +176,7 @@ void sock_struct_dump( const sock_struct_t *s )
     printf( "LTO: %d\n", s->lto ); 
     printf( "CTO: %d\n", s->cto ); 
     printf( "Valid: %s\n", (s->valid==1 ? "true" : "false") ); 
-    printf( "Result: %d\n", s->result ); 
+    printf( "Result: %s\n", MSH_NAME( s->result ) ); 
 }
 
 

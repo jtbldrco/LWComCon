@@ -306,10 +306,15 @@ sock_struct_t * msg_sock_hdlr_listen( sock_struct_t *sock_struct,
             }
         }
 
+        sock_struct->result = MSH_CLIENT_CONNECTED;
+        sock_struct->csd = local_client_sd;
+
+        return sock_struct;
+
     } // End while(...)
     
-    sock_struct->result = MSH_CLIENT_CONNECTED;
-    sock_struct->csd = local_client_sd;
+    sock_struct->result = MSH_ERROR_NOCONNECT;
+    sock_struct->csd = 0;
 
     return sock_struct;
 
@@ -511,7 +516,7 @@ sock_struct_t * msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct )
         fprintf( stderr, "Failed to connect to service.  Exiting.\n" );
 #endif
 
-        sock_struct->result = MSH_ERROR_SOCKCONNECT;
+        sock_struct->result = MSH_ERROR_NOCONNECT;
         return sock_struct;
     }
 

@@ -4,11 +4,12 @@ LIB_NAME = imsgsockhdlr
 FULL_LIB_NAME_A = lib$(LIB_NAME).a
 FULL_LIB_NAME_SO = lib$(LIB_NAME).so
 
-BUILD_PRODUCTS = $(FULL_LIB_NAME_A) $(FULL_LIB_NAME_SO)
+TEST_PROG1 = msg_sock_hdlr_test_01
+TEST_PROG1_OBJS = msg_sock_hdlr_test_01.o
+
+BUILD_PRODUCTS = $(FULL_LIB_NAME_A) $(FULL_LIB_NAME_SO) $(TEST_PROG01)
 
 LIB_OBJS = msg_sock_hdlr.o
-TEST_PROG1_OBJS = msg_sock_hdlr_test.o
-TEST_PROG2_OBJS = msg_sock_hdlr_test_wto.o
 
 # Compilers
 CC = gcc
@@ -49,9 +50,6 @@ $(FULL_LIB_NAME_SO):	$(LIB_OBJS)
 $(TEST_PROG1):	$(TEST_PROG1_OBJS)
 	$(CXX) -o $@ $^ -Wl,-rpath,$(LIB_DIR) -L$(LIB_DIR) -l $(LIB_NAME) $(PN_LDFLAGS)
 
-$(TEST_PROG2):	$(TEST_PROG2_OBJS)
-	$(CXX) -o $@ $^ -Wl,-rpath,$(LIB_DIR) -L$(LIB_DIR) -l $(LIB_NAME) $(PN_LDFLAGS)
-
 %.o:	$(PROJECT_ROOT)%.cpp $(PROJECT_ROOT)%.h
 	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
@@ -59,5 +57,5 @@ $(TEST_PROG2):	$(TEST_PROG2_OBJS)
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
 
 clean:
-	rm -fr $(BUILD_PRODUCTS) $(TEST_PROG1_OBJS) $(TEST_PROG2_OBJS) $(LIB_OBJS) $(FULL_LIB_NAME_A) $(FULL_LIB_NAME_SO)
+	rm -fr $(BUILD_PRODUCTS) $(TEST_PROG1_OBJS) $(LIB_OBJS) $(FULL_LIB_NAME_A) $(FULL_LIB_NAME_SO)
 
