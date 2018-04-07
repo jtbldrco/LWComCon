@@ -399,8 +399,9 @@ sock_struct_t * msg_sock_hdlr_recv( sock_struct_t *sock_struct,
             printf( "Rejecting last-read input (rd_buf).  Exiting.\n" );
 #endif
 
-            sock_struct->result = MSH_MESSAGE_RECVD_OVERFLOW;
-            return sock_struct;
+            message_size = -1 * message_size; // message_buf is essentially bad
+            return_code = MSH_MESSAGE_RECVD_OVERFLOW;
+            break; // jump out of while loop
         }
 
         // Dereferencing message_buf to write into caller-alloc'd memory
@@ -410,6 +411,11 @@ sock_struct_t * msg_sock_hdlr_recv( sock_struct_t *sock_struct,
 
 #ifdef DEBUG_MSH
         printf( "... current message_buf: %s\n", message_buf );
+#endif
+        message_size += bytes_read;
+
+#ifdef DEBUG_MSH
+        printf( "Now, message_size: %d\n", message_size ); 
 #endif
 
         if( bytes_read < sizeof( rd_buf ) ) {
@@ -421,7 +427,7 @@ sock_struct_t * msg_sock_hdlr_recv( sock_struct_t *sock_struct,
 
             break; // That was the last read - good job!  Work here is done.
         }
-        message_size += bytes_read;
+
         // Now test for that terminating null byte - another 'done' case.
         // Oh, and the careful reader may be thinking 'Gee, you could use
         // this test for every case, not JUST the even-multiple circumstance,
@@ -448,12 +454,25 @@ sock_struct_t * msg_sock_hdlr_recv( sock_struct_t *sock_struct,
         if( set_cli_timeout && ( errno == EWOULDBLOCK || errno == EAGAIN ) ) { 
             return_code = MSH_MESSAGE_RECV_TIMEOUT;
         }
+    } else {
+
+        // Send an ACK
+        char ack_response[32] = { 0 };
+        sprintf( ack_response, "ACK.bytes:%d", message_size );
+        if( send( local_client_sd, ack_response, strlen( ack_response ), 0 ) == -1 ) {
+            return_code = MSH_ERROR_ACK_SEND_FAIL;
+        }
+
+#ifdef DEBUG_MSH
+        printf( "ACK msg sent: %s\n", ack_response );
+#endif
+
     }
 
 #ifdef DEBUG_MSH
     printf( "End of while( 'read > 0' ) - bytes read: <%d>\n", bytes_read );
     printf( "Received <%s>\n", message_buf );
-    printf( "Return code: %d.\n", return_code );
+    printf( "Return code: %s.\n", MSH_DEFINE_NAME( return_code ) );
 #endif
 
     sock_struct->result = return_code;
@@ -577,11 +596,23 @@ sock_struct_t * msg_sock_hdlr_send( sock_struct_t *sock_struct,
         return sock_struct;
     }
 
+    sock_struct->result = MSH_MESSAGE_SENT;
+
+    // Recv an ACK
+    char ack_response[32] = { 0 };
+    int bytes_read;
+    if( ( bytes_read = read( local_client_sd, ack_response, 32 ) ) == -1 ) {
+        sock_struct->result = MSH_ERROR_ACK_RECV_FAIL;
+    }
+
 #ifdef DEBUG_MSH
-    printf( "Message sent to service.  Exiting.\n" );
+    printf( "ACK rec'd: %s\n", ack_response );
 #endif
 
-    sock_struct->result = MSH_MESSAGE_SENT;
+#ifdef DEBUG_MSH
+    printf( "Message sent to service.  Returning.\n" );
+#endif
+
     return sock_struct;
 
 } /* End msg_sock_hdlr_send(...) */

@@ -134,6 +134,7 @@ int main( int argc, char *argv[] ) {
         for( int ctr = 0; ctr < 3; ctr++ ) {
             msg_no++;
             printf( "\nCalling msg_sock_hdlr_recv(...) for msg # %d\n", msg_no );
+            memset( recv_msg, 0, MAX_RECV_MSG_LEN );
             sock_struct = msg_sock_hdlr_recv( sock_struct, recv_msg,
                                               MAX_RECV_MSG_LEN, &shutdownFlag );
 
@@ -149,6 +150,7 @@ int main( int argc, char *argv[] ) {
 
         printf( "\nCalling msg_sock_hdlr_recv(...) final time with shutdown signaled.\n" );
         shutdownFlag = 1;
+        memset( recv_msg, 0, MAX_RECV_MSG_LEN );
         sock_struct = msg_sock_hdlr_recv( sock_struct, recv_msg,
                                           MAX_RECV_MSG_LEN, &shutdownFlag );
 

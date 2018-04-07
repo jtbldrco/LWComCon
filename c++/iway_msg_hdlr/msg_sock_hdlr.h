@@ -111,6 +111,12 @@ char * MSH_DEFINE_NAME( const int value ) {
     case 208:
         return "MSH_ERROR_SOCKACCEPT";
 
+    case 209:
+        return "MSH_ERROR_ACK_RECV_FAIL";
+
+    case 210:
+        return "MSH_ERROR_ACK_SEND_FAIL";
+
     case 301:
         return "MSH_LISTENER_CREATED";
 
@@ -145,6 +151,8 @@ char * MSH_DEFINE_NAME( const int value ) {
 #define MSH_ERROR_SOCKLISTEN     206
 #define MSH_ERROR_NOCONNECT      207
 #define MSH_ERROR_SOCKACCEPT     208
+#define MSH_ERROR_ACK_RECV_FAIL  209
+#define MSH_ERROR_ACK_SEND_FAIL  210
 
 #define MSH_LISTENER_CREATED     301
 #define MSH_CLIENT_CONNECTED     302
