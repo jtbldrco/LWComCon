@@ -67,6 +67,9 @@
 #define MAX_SEND_MSG_LEN 256
 #define MAX_RECV_MSG_LEN 64
 
+// #define DO_ACK_EXCHANGES true
+#define DO_ACK_EXCHANGES false
+
 // Special boundary test functions
 int send_boundary_condition_test( const char host[], const int port );
 int recv_boundary_condition_test( char host[], const int port );
@@ -152,11 +155,14 @@ int main( int argc, char *argv[] ) {
                 send_msg, host, port );
         
         printf( "Calling sock_struct_init_send(...)\n" );
-        sock_struct_t *sock_struct = sock_struct_init_send( host, port ); 
+        sock_struct_t *sock_struct = sock_struct_init_send( host, port, 10 ); 
+
         printf( "Calling msg_sock_hdlr_open_for_send(...)\n" );
         sock_struct = msg_sock_hdlr_open_for_send( sock_struct );
+
         printf( "Calling msg_sock_hdlr_send(...)\n" );
-        sock_struct = msg_sock_hdlr_send( sock_struct, send_msg );
+        sock_struct = msg_sock_hdlr_send( sock_struct, send_msg, DO_ACK_EXCHANGES );
+
         if( MSH_MESSAGE_SENT == sock_struct->result ) {
             printf( "Message successfully sent.\n" );
         } else {
@@ -174,13 +180,16 @@ int main( int argc, char *argv[] ) {
         int shutdownFlag = 0; // Do not just timeout & return
         printf( "Calling sock_struct_init_recv(...)\n" );
         sock_struct_t *sock_struct = sock_struct_init_recv( NULL, port, 6, 10 );
+
         printf( "Calling msg_sock_hdlr_open_for_recv(...)\n" );
         sock_struct = msg_sock_hdlr_open_for_recv( sock_struct );
+
         printf( "Calling msg_sock_hdlr_listen(...)\n" );
         sock_struct = msg_sock_hdlr_listen( sock_struct, &shutdownFlag );
+
         printf( "Calling msg_sock_hdlr_recv(...)\n" );
-        sock_struct = msg_sock_hdlr_recv( sock_struct, recv_msg,
-                                          MAX_RECV_MSG_LEN, &shutdownFlag );
+        sock_struct = msg_sock_hdlr_recv( sock_struct, recv_msg, MAX_RECV_MSG_LEN,
+                                          &shutdownFlag, DO_ACK_EXCHANGES );
 
         if( MSH_MESSAGE_RECVD == sock_struct->result ) {
             printf( "Message successfully received.\n" );
@@ -231,14 +240,17 @@ int send_boundary_condition_test( const char host[], const int port )
     printf( "Should be successfully sent, but rejected as overflow by receiver.\n" );
 
     printf( "Calling sock_struct_init_send(...)\n" );
-    sock_struct_t *sock_struct = sock_struct_init_send( host, port ); 
+    sock_struct_t *sock_struct = sock_struct_init_send( host, port, 10 ); 
     sock_struct_dump( sock_struct );
+
     printf( "Calling msg_sock_hdlr_open_for_send(...)\n" );
     sock_struct = msg_sock_hdlr_open_for_send( sock_struct );
     sock_struct_dump( sock_struct );
+
     printf( "Calling msg_sock_hdlr_send(...)\n" );
-    sock_struct = msg_sock_hdlr_send( sock_struct, bctrecv_msg );
+    sock_struct = msg_sock_hdlr_send( sock_struct, bctrecv_msg, DO_ACK_EXCHANGES );
     sock_struct_dump( sock_struct );
+
     if( MSH_MESSAGE_SENT == sock_struct->result ) {
         printf( "Message successfully sent.\n" );
     } else {
@@ -269,14 +281,18 @@ int recv_boundary_condition_test( char host[], const int port )
     printf( "Calling sock_struct_init_recv(...)\n" );
     sock_struct_t *sock_struct = sock_struct_init_recv( NULL, port, 10, 10 );
     sock_struct_dump( sock_struct );
+
     printf( "Calling msg_sock_hdlr_open_for_recv(...)\n" );
     sock_struct = msg_sock_hdlr_open_for_recv( sock_struct );
     sock_struct_dump( sock_struct );
+
     printf( "Calling msg_sock_hdlr_listen(...)\n" );
     sock_struct = msg_sock_hdlr_listen( sock_struct, &shutdownFlag );
     sock_struct_dump( sock_struct );
+
     printf( "Calling msg_sock_hdlr_recv(...)\n" );
-    sock_struct = msg_sock_hdlr_recv( sock_struct, bctrecv_msg, MAX_RECV, &shutdownFlag );
+    sock_struct = msg_sock_hdlr_recv( sock_struct, bctrecv_msg, MAX_RECV,
+                                      &shutdownFlag, DO_ACK_EXCHANGES );
     sock_struct_dump( sock_struct );
 
     if( MSH_MESSAGE_RECVD == sock_struct->result ) {

@@ -41,6 +41,9 @@
 #define MAX_SEND_MSG_LEN 256
 #define MAX_RECV_MSG_LEN 64
 
+#define DO_ACK_EXCHANGES true
+// #define DO_ACK_EXCHANGES false
+
 void show_usage( const char *errmsg ) {
     printf( "Error %s. See bash run script.\n", errmsg );
     return;
@@ -88,7 +91,7 @@ int main( int argc, char *argv[] ) {
                 host, port );
         
         printf( "\nCalling sock_struct_init_send(...)\n" );
-        sock_struct_t *sock_struct = sock_struct_init_send( host, port ); 
+        sock_struct_t *sock_struct = sock_struct_init_send( host, port, 6 ); 
 
         printf( "\nCalling msg_sock_hdlr_open_for_send(...)\n" );
         sock_struct = msg_sock_hdlr_open_for_send( sock_struct );
@@ -100,7 +103,7 @@ int main( int argc, char *argv[] ) {
 
             printf( "\nCalling msg_sock_hdlr_send(...) for msg # %d of <%s>\n",
                     msg_no, send_msg ); 
-            sock_struct = msg_sock_hdlr_send( sock_struct, send_msg );
+            sock_struct = msg_sock_hdlr_send( sock_struct, send_msg, DO_ACK_EXCHANGES );
 
             if( MSH_MESSAGE_SENT == sock_struct->result ) {
                 printf( "Message %d successfully sent.\n", msg_no );
@@ -135,8 +138,8 @@ int main( int argc, char *argv[] ) {
             msg_no++;
             printf( "\nCalling msg_sock_hdlr_recv(...) for msg # %d\n", msg_no );
             memset( recv_msg, 0, MAX_RECV_MSG_LEN );
-            sock_struct = msg_sock_hdlr_recv( sock_struct, recv_msg,
-                                              MAX_RECV_MSG_LEN, &shutdownFlag );
+            sock_struct = msg_sock_hdlr_recv( sock_struct, recv_msg, MAX_RECV_MSG_LEN,
+                                              &shutdownFlag, DO_ACK_EXCHANGES );
 
             if( MSH_MESSAGE_RECVD == sock_struct->result ) {
                 printf( "Message #%d successfully received.\n", msg_no );
@@ -151,8 +154,8 @@ int main( int argc, char *argv[] ) {
         printf( "\nCalling msg_sock_hdlr_recv(...) final time with shutdown signaled.\n" );
         shutdownFlag = 1;
         memset( recv_msg, 0, MAX_RECV_MSG_LEN );
-        sock_struct = msg_sock_hdlr_recv( sock_struct, recv_msg,
-                                          MAX_RECV_MSG_LEN, &shutdownFlag );
+        sock_struct = msg_sock_hdlr_recv( sock_struct, recv_msg, MAX_RECV_MSG_LEN,
+                                          &shutdownFlag, DO_ACK_EXCHANGES );
 
         sock_struct_destroy( sock_struct ); // Closes socket(s), frees internal memory
     }

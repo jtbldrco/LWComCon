@@ -61,7 +61,7 @@ char full_log_msg[1024]; // Socket api-generated errors; generously sized!
  *
  * Structure *sock_struct must be constructed valid prior to call.
  **************************************************************************/
-sock_struct_t * msg_sock_hdlr_open_for_recv( sock_struct_t *sock_struct )
+sock_struct_t *msg_sock_hdlr_open_for_recv( sock_struct_t *sock_struct )
 {
 
     // First, do some simple validation on the input structure - 
@@ -199,8 +199,8 @@ sock_struct_t * msg_sock_hdlr_open_for_recv( sock_struct_t *sock_struct )
 
 
 /**************************************************************************/
-sock_struct_t * msg_sock_hdlr_listen( sock_struct_t *sock_struct,
-                                      int *shutdownFlag )
+sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct,
+                                     int *shutdownFlag )
 {
     // First, do some simple validation on the input structure -
     if( sock_struct->lsd == 0 ) sock_struct->valid = 0;
@@ -322,10 +322,11 @@ sock_struct_t * msg_sock_hdlr_listen( sock_struct_t *sock_struct,
 
 
 /**************************************************************************/
-sock_struct_t * msg_sock_hdlr_recv( sock_struct_t *sock_struct, 
-                                    char *message_buf,
-                                    const int message_buf_len,
-                                    int *shutdownFlag )
+sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct, 
+                                   char *message_buf,
+                                   const int message_buf_len,
+                                   int *shutdownFlag,
+                                   const bool sendAck )
 {
     // First, do some simple validation on the input structure -
     if( sock_struct->lsd == 0 ) sock_struct->valid = 0;
@@ -452,17 +453,24 @@ sock_struct_t * msg_sock_hdlr_recv( sock_struct_t *sock_struct,
         // Do we have a timeout situation?  If so, we are NOT going to read
         // more but we WILL change the return code
         if( set_cli_timeout && ( errno == EWOULDBLOCK || errno == EAGAIN ) ) { 
+
+#ifdef DEBUG_MSH
+            printf( "Recv timeout happened (bytes_read<0).\n" );
+#endif
+
             return_code = MSH_MESSAGE_RECV_TIMEOUT;
         }
     }
-    if( bytes_read > 0 ) {
+    if( bytes_read > 0 && sendAck ) {
+
+#ifdef DEBUG_MSH
+        printf( "ACK will be sent next\n" );
+#endif
 
         // Send an ACK
         char ack_response[32] = { 0 };
         sprintf( ack_response, "ACK.bytes:%d", message_size );
 
-// DEBUG JTJTJT
-        sleep(25);
         if( send( local_client_sd, ack_response, strlen( ack_response ), 0 ) == -1 ) {
             return_code = MSH_ERROR_ACK_SEND_FAIL;
         }
@@ -486,7 +494,7 @@ sock_struct_t * msg_sock_hdlr_recv( sock_struct_t *sock_struct,
 
 
 /**************************************************************************/
-sock_struct_t * msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct )
+sock_struct_t *msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct )
 {
     // First, do some simple validation on the input structure -
     if( ! sock_struct->valid ) {
@@ -589,8 +597,9 @@ sock_struct_t * msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct )
 
 
 /**************************************************************************/
-sock_struct_t * msg_sock_hdlr_send( sock_struct_t *sock_struct,
-                                  const char *message_buf )
+sock_struct_t *msg_sock_hdlr_send( sock_struct_t *sock_struct,
+                                   const char *message_buf,
+                                   const bool awaitAck )
 {
     // First, do some simple validation on the input structure -
     if( sock_struct->csd == 0 ) sock_struct->valid = 0;
@@ -638,14 +647,21 @@ sock_struct_t * msg_sock_hdlr_send( sock_struct_t *sock_struct,
     // Recv an ACK
     char ack_response[32] = { 0 };
     int bytes_read;
-    if( ( bytes_read = read( local_client_sd, ack_response, 32 ) ) == -1 ) {
-        sock_struct->result = MSH_ERROR_ACK_RECV_FAIL;
-    }
+
+    if( awaitAck ) {
+#ifdef DEBUG_MSH
+        printf( "ACK recv is next\n" );
+#endif
+
+        if( ( bytes_read = read( local_client_sd, ack_response, 32 ) ) == -1 ) {
+            sock_struct->result = MSH_ERROR_ACK_RECV_FAIL;
+        }
 
 #ifdef DEBUG_MSH
-    printf( "ACK bytes_read: %d\n", bytes_read );
-    printf( "ACK rec'd: %s\n", ack_response );
+        printf( "ACK bytes_read: %d\n", bytes_read );
+        printf( "ACK rec'd: %s\n", ack_response );
 #endif
+    }
 
 #ifdef DEBUG_MSH
     printf( "Message sent to service.  Returning.\n" );

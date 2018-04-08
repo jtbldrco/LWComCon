@@ -211,8 +211,9 @@ sock_struct_t *sock_struct_init_recv( const char *host, const int port,
     return s;
 } // End sock_struct_init_recv(...)
 
-sock_struct_t *sock_struct_init_send( const char *host, const int port ) {
-    return sock_struct_init_recv( host, port, 0, 0 );
+sock_struct_t *sock_struct_init_send( const char *host, const int port,
+                                      const char cto ) {
+    return sock_struct_init_recv( host, port, 0, cto );
 } // End sock_struct_init_send()
     
 void sock_struct_close_client( sock_struct_t *s ) {
@@ -250,10 +251,13 @@ void sock_struct_destroy( sock_struct_t *s ) {
 sock_struct_t *msg_sock_hdlr_open_for_recv( sock_struct_t *sock_struct );
 sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct, int *shutdownFlag );
 sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct, char *message_buf,
-                                   const int message_buf_len, int *shutdownFlag );
+                                   const int message_buf_len, int *shutdownFlag,
+                                   const bool sendAck );
 
 sock_struct_t *msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct );
-sock_struct_t *msg_sock_hdlr_send( sock_struct_t *sock_struct, const char *message_buf );
+sock_struct_t *msg_sock_hdlr_send( sock_struct_t *sock_struct,
+                                   const char *message_buf,
+                                   const bool awaitAck  );
 
 //////////////////////////////////////////////////////////////////
 #ifdef __cplusplus
