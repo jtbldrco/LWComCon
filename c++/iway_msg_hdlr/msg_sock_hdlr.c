@@ -216,6 +216,9 @@ sock_struct_t * msg_sock_hdlr_listen( sock_struct_t *sock_struct,
         return sock_struct;
     }
 
+    bool set_listen_timeout = ( sock_struct->lto > 0 );
+    bool set_cli_timeout = ( sock_struct->cto > 0 );
+
     struct timeval tmrecv, tmsend;
     tmrecv.tv_sec = sock_struct->cto;
     tmrecv.tv_usec=0;
@@ -224,9 +227,6 @@ sock_struct_t * msg_sock_hdlr_listen( sock_struct_t *sock_struct,
 
     int local_listener_sd = sock_struct->lsd;
     int local_client_sd, their_sockaddr;
-
-    bool set_listen_timeout = ( sock_struct->lto > 0 );
-    bool set_cli_timeout = ( sock_struct->cto > 0 );
 
     // In the normal case (regardless of timeout settings) this
     // will return 0 -
@@ -454,11 +454,15 @@ sock_struct_t * msg_sock_hdlr_recv( sock_struct_t *sock_struct,
         if( set_cli_timeout && ( errno == EWOULDBLOCK || errno == EAGAIN ) ) { 
             return_code = MSH_MESSAGE_RECV_TIMEOUT;
         }
-    } else {
+    }
+    if( bytes_read > 0 ) {
 
         // Send an ACK
         char ack_response[32] = { 0 };
         sprintf( ack_response, "ACK.bytes:%d", message_size );
+
+// DEBUG JTJTJT
+        sleep(25);
         if( send( local_client_sd, ack_response, strlen( ack_response ), 0 ) == -1 ) {
             return_code = MSH_ERROR_ACK_SEND_FAIL;
         }
@@ -493,6 +497,14 @@ sock_struct_t * msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct )
         sock_struct->result = MSH_INVALID_SOCKSTRUCT;
         return sock_struct;
     }
+
+    bool set_cli_timeout = ( sock_struct->cto > 0 );
+
+    struct timeval tmrecv, tmsend;
+    tmrecv.tv_sec = sock_struct->cto;
+    tmrecv.tv_usec=0;
+    tmsend.tv_sec = sock_struct->cto;
+    tmsend.tv_usec=0;
 
     int local_client_sd, numbytes;
     struct addrinfo hints, *servinfo, *ptr_addrinfo;
@@ -540,6 +552,31 @@ sock_struct_t * msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct )
     }
 
     freeaddrinfo( servinfo ); // all done with this structure
+
+ 
+    if( set_cli_timeout ) {
+
+#ifdef DEBUG_MSH
+        printf( "Setting Client Timeouts\n" );
+#endif
+
+        if( setsockopt( local_client_sd, SOL_SOCKET, SO_SNDTIMEO, &tmsend, sizeof tmsend) < 0 ) {
+            sprintf( full_log_msg,
+                     "MSH Err %d; unable to set client sock send timeout",
+                     MSH_ERROR_SETSOCKOPT );
+            IWAY_LOG( IWAY_LOG_ERROR, full_log_msg );
+            sock_struct->result = MSH_ERROR_SETSOCKOPT;
+            return sock_struct;
+        }
+        if( setsockopt( local_client_sd, SOL_SOCKET, SO_RCVTIMEO, &tmrecv, sizeof tmrecv ) < 0 ) {
+            sprintf( full_log_msg,
+                     "MSH Err %d; unable to set client sock receive timeout",
+                     MSH_ERROR_SETSOCKOPT );
+            IWAY_LOG( IWAY_LOG_ERROR, full_log_msg );
+            sock_struct->result = MSH_ERROR_SETSOCKOPT;
+            return sock_struct;
+        }
+    }
 
     sock_struct->result = MSH_CLIENT_CONNECTED;
     // NOTE on terminology - assigning this server socket descriptor
@@ -606,6 +643,7 @@ sock_struct_t * msg_sock_hdlr_send( sock_struct_t *sock_struct,
     }
 
 #ifdef DEBUG_MSH
+    printf( "ACK bytes_read: %d\n", bytes_read );
     printf( "ACK rec'd: %s\n", ack_response );
 #endif
 
