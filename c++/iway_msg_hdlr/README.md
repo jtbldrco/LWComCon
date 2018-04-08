@@ -2,7 +2,7 @@
 
 The iWay C/C++ message handler library is a fast and convenient way to support *character-string based* TCP Messaging between two hosts with the following capabilities:
 
-- a stripped down *in process* server receiver interface that removes heavier-weight server fork() behavior and can easily be run in its own ThreadedWorker class instance,
+- a stripped down *in process* client-server send-receive interface that removes the heavier-weight server fork() behavior and can easily be run in its own ThreadedWorker class instance,
 - flexible support for optional client connection-wait timeouts with both 'retry again' and 'return now' options,
 - optional ACK transmissions (returned by receiver, waited for by sender),
 - its header file is wrapped with 'extern "C"' for convenient C++ access,
@@ -13,7 +13,7 @@ The included Makefile builds shared and static libraries ```libimsgsockhdlr.so``
 
 The first test program in this subdirectory [./msg_sock_hdlr_test_01.c](./msg_sock_hdlr_test_01.c) also includes tests of boundary-case circumstances (handling of unterminated input strings).
 
-To build the source, libraries and test program, enter:
+To build the source, libraries and test programs, enter:
 
 ```
 $ cd .../OrderlyShutdownPattern/c++/iway_msg_hdlr/   # this subdirectory
@@ -29,6 +29,8 @@ The C function declarations are wrapped with ```extern "C" { }``` to ease buildi
 ## Send and Receive Functions
 
 Note that this messaging api works with string-based messages - all send buffers must be null-byte terminated.  Recieve buffers must be sized to include a null-terminating byte.
+
+Both sender and receiver interfaces utilize a ```sock_struct_t``` typedef defined in the header file.  Numerous utility functions exist there to initialize the struct easily, to modify it, to interogate it, and to properly manage its internal memory (see ```sock_struct_destroy(...)```).  The structure is initialized for sending or for receiving and then is passed into each api call to provide input parameters and to return results (except, that is, for the send/receive message content itself).
 
 ### Sender API
 
