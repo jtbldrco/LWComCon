@@ -67,8 +67,13 @@
 #define MAX_SEND_MSG_LEN 256
 #define MAX_RECV_MSG_LEN 64
 
-// #define DO_ACK_EXCHANGES true
+
+
+#ifdef DEBUG_MSH
+#define DO_ACK_EXCHANGES true
+#else
 #define DO_ACK_EXCHANGES false
+#endif
 
 // Special boundary test functions
 int send_boundary_condition_test( const char host[], const int port );
