@@ -1,17 +1,16 @@
 # Lightweight Command/Control [#LWComCon] 
-## A Multi-Threaded, Multi-Process, Network-based</br>Command/Control Design Pattern in C++ and Java <img align="right" src="./images/iwaytechnology284x60.gif" />
-
+## A Multi-Threaded, Multi-Process, Network-based</br>Command/Control Design Pattern in C++ and Java 
 
 MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
 <br/>(*original work previously published under Open Source License in December, 2002*)
 
-Multi-threading, network sockets, multiple processes ... *what's lightweight* about that?  Well, to begin with, you won't find a third-party broker stuck in the middle that you'll need to allocate machine resources for, stand-up, configure, integrate and manage.  Instead, all communications are peer-to-peer and achieved with a simple TCP network messaging model with optional acks.
+Multi-threading, network sockets, multiple processes ... *what's lightweight* about that?  Well, to begin with, you won't find a third-party broker stuck in the middle that you'll need to allocate machine resources for, stand-up, configure, integrate and manage.  Instead, all communications are peer-to-peer and achieved with a simple TCP network messaging model with optional acks.  My finding is that many scenarios don't need HA failover, guaranteed delivery, routing magic, etc.  Whether you're running in Kubernetes Containers or wireless routers, often - simple is better.
 
 <img align="right" src="./images/OSP_Full.png" />
 
 This repository contains materials to introduce and demonstrate a TCP network-based, Inter-process, Multi-threaded Command and Control methodology (in both C++ and Java) that's grown out of past work with **The Orderly Shutdown Design Pattern** (OSP).  Included are numerous additional utility design patterns such as -
 
-- the ThreadedWorker class which codifies the multi-threading division of labor between creator- and created-threads and the patterns of use for startup, operation and shutdown,
+- the C++ ThreadedWorker class which offers a simple multi-threading codification of the division of labor between creator- and created-threads and the patterns of use for startup, operation and shutdown,
 - a Thread-Safe, Pointer-based Message Queue - the C++ *templatized* class ThreadSafeMsgPtrQueue - which demonstrates software *resource acquisition is initialization* (RAII) and makes trivial (literally *invisible*) the thread-safe use of Standard Template Library collections (and also defines a model for safe, responsible management of pointer-based C++ collections),
 - Linux rsyslog logging techniques and utilities, and
 - other utilities to ease C++ multi-threaded & network programming, testing, and trouble-shooting.
@@ -115,6 +114,7 @@ $ sudo apt-get install openjdk-8-jdk
 - or -
 $ sudo apt-get install oracle-java9-installer
 ```
+<img align="right" src="./images/iwaytechnology284x60.gif" />
 **Copyright 2018 iWay Technology LLC<br/><br/>MIT License**<br/>
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
