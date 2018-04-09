@@ -1,0 +1,111 @@
+Script started on 2018-04-09 10:57:01-0600
+
+$ make clean; make -f Makefile.WithDebug
+
+$ ./run_test2_demo.sh
+
+Test will run with output captured to file, then output will be dumped to screen.
+
+=====================
+SENDER Console Output
+=====================
+
+Starting test as msg sender sending three msgs to <localhost:16273>
+
+Calling sock_struct_init_send(...)
+
+Calling msg_sock_hdlr_open_for_send(...)
+Setting Client Timeouts
+
+Calling msg_sock_hdlr_send(...) for msg # 1 of <Demo Msg: 1>
+ACK recv is next
+ACK bytes_read: 12
+ACK rec'd: ACK.bytes:12
+Message sent to service.  Returning.
+Message 1 successfully sent.
+
+Calling msg_sock_hdlr_send(...) for msg # 2 of <Demonstration Msg: 2>
+ACK recv is next
+ACK bytes_read: 12
+ACK rec'd: ACK.bytes:21
+Message sent to service.  Returning.
+Message 2 successfully sent.
+
+Calling msg_sock_hdlr_send(...) for msg # 3 of <Demonstration Message: 3>
+ACK recv is next
+ACK bytes_read: 12
+ACK rec'd: ACK.bytes:25
+Message sent to service.  Returning.
+Message 3 successfully sent.
+
+=======================
+RECEIVER Console Output
+=======================
+
+Starting test as msg receiver (max recv len <64>) on port <16273>
+
+Calling sock_struct_init_recv(...)
+
+Calling msg_sock_hdlr_open_for_recv(...)
+set_listen_timeout: 6
+Setting Listen Timeouts
+
+Calling msg_sock_hdlr_listen(...)
+Listener received a connection from client (4) ...
+Setting Client Timeouts
+
+Calling msg_sock_hdlr_recv(...) for msg # 1
+Receiver process receiving message from Sender ...
+Server: socket read-loop, bytes_read: 12
+... current message_buf: Demo Msg: 1
+Now, message_size: 12
+Found a rec'd byte count less than sizeof rd_buf -
+interpret that to mean 'end of send'.
+ACK will be sent next
+ACK msg sent: ACK.bytes:12
+End of while( 'read > 0' ) - bytes read: <12>
+Received <Demo Msg: 1>
+Return code: MSH_MESSAGE_RECVD.
+Message #1 successfully received.
+Rec'd msg #1: <Demo Msg: 1>
+
+Calling msg_sock_hdlr_recv(...) for msg # 2
+Receiver process receiving message from Sender ...
+Server: socket read-loop, bytes_read: 21
+... current message_buf: Demonstration Msg: 2
+Now, message_size: 21
+Found a rec'd byte count less than sizeof rd_buf -
+interpret that to mean 'end of send'.
+ACK will be sent next
+ACK msg sent: ACK.bytes:21
+End of while( 'read > 0' ) - bytes read: <21>
+Received <Demonstration Msg: 2>
+Return code: MSH_MESSAGE_RECVD.
+Message #2 successfully received.
+Rec'd msg #2: <Demonstration Msg: 2>
+
+Calling msg_sock_hdlr_recv(...) for msg # 3
+Receiver process receiving message from Sender ...
+Server: socket read-loop, bytes_read: 25
+... current message_buf: Demonstration Message: 3
+Now, message_size: 25
+Found a rec'd byte count less than sizeof rd_buf -
+interpret that to mean 'end of send'.
+ACK will be sent next
+ACK msg sent: ACK.bytes:25
+End of while( 'read > 0' ) - bytes read: <25>
+Received <Demonstration Message: 3>
+Return code: MSH_MESSAGE_RECVD.
+Message #3 successfully received.
+Rec'd msg #3: <Demonstration Message: 3>
+
+Calling msg_sock_hdlr_recv(...) final time with shutdown signaled.
+Receiver process receiving message from Sender ...
+End of while( 'read > 0' ) - bytes read: <0>
+Received <>
+Return code: MSH_MESSAGE_NOT_RECVD.
+
+$ exit
+exit
+
+Script done on 2018-04-09 10:57:25-0600

@@ -96,10 +96,11 @@ int main( int argc, char *argv[] ) {
         printf( "\nCalling msg_sock_hdlr_open_for_send(...)\n" );
         sock_struct = msg_sock_hdlr_open_for_send( sock_struct );
 
+        char *msgs[] = { "Demo Msg", "Demonstration Msg", "Demonstration Message" };
         int msg_no = 0;
         for( int ctr = 0; ctr < 3; ctr++ ) {
             msg_no++;
-            sprintf( send_msg, "DEMONSTRATION MSG: %d", msg_no );
+            sprintf( send_msg, "%s: %d", msgs[ctr%3], msg_no );
 
             printf( "\nCalling msg_sock_hdlr_send(...) for msg # %d of <%s>\n",
                     msg_no, send_msg ); 

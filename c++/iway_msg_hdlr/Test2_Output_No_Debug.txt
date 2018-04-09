@@ -1,0 +1,57 @@
+Script started on 2018-04-09 10:56:20-0600
+
+$ make
+
+$ ./run_test2_demo.sh
+
+Test will run with output captured to file, then output will be dumped to screen.
+
+=====================
+SENDER Console Output
+=====================
+
+Starting test as msg sender sending three msgs to <localhost:16273>
+
+Calling sock_struct_init_send(...)
+
+Calling msg_sock_hdlr_open_for_send(...)
+
+Calling msg_sock_hdlr_send(...) for msg # 1 of <Demo Msg: 1>
+Message 1 successfully sent.
+
+Calling msg_sock_hdlr_send(...) for msg # 2 of <Demonstration Msg: 2>
+Message 2 successfully sent.
+
+Calling msg_sock_hdlr_send(...) for msg # 3 of <Demonstration Message: 3>
+Message 3 successfully sent.
+
+=======================
+RECEIVER Console Output
+=======================
+
+Starting test as msg receiver (max recv len <64>) on port <16273>
+
+Calling sock_struct_init_recv(...)
+
+Calling msg_sock_hdlr_open_for_recv(...)
+
+Calling msg_sock_hdlr_listen(...)
+
+Calling msg_sock_hdlr_recv(...) for msg # 1
+Message #1 successfully received.
+Rec'd msg #1: <Demo Msg: 1>
+
+Calling msg_sock_hdlr_recv(...) for msg # 2
+Message #2 successfully received.
+Rec'd msg #2: <Demonstration Msg: 2>
+
+Calling msg_sock_hdlr_recv(...) for msg # 3
+Message #3 successfully received.
+Rec'd msg #3: <Demonstration Message: 3>
+
+Calling msg_sock_hdlr_recv(...) final time with shutdown signaled.
+
+$ exit
+exit
+
+Script done on 2018-04-09 10:56:43-0600
