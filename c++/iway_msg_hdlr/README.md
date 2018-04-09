@@ -1,13 +1,13 @@
 # iWay C/C++ Message Handler Library <img style="float: right;" src="../../images/iwaytechnology284x60.gif" />
 
-The iWay C/C++ message handler library is a fast and convenient way to support *character-string based* TCP Messaging between two hosts with the following capabilities:
+The iWay C/C++ message handler library is a fast and convenient way to support *character-string based* TCP Messaging between two processes - one (the receiver) listening for connections and the other (the sender) initiating such a connection.  This might be referred to as a Client-Server communication model but, in the present case, there is no actual *service* provided by one for another - hence the use of 'send/receive' terminology.  This subdirectory includes the following capabilities:
 
-- a stripped down *in process* client-server send-receive interface that removes the heavier-weight server fork() behavior and can easily be run in its own ThreadedWorker class instance,
-- flexible support for optional client connection-wait timeouts with both 'retry again' and 'return now' options,
+- a stripped down *in process* send-receive interface that removes the heavier-weight server fork() behavior (implemented here: [../sample_socket_comm/](../sample_socket_comm/) and can easily be run in its own ThreadedWorker class instance,
+- flexible support for optional connection-wait timeouts (in the listener socket) with both 'retry again' and 'return now' options,
 - optional ACK transmissions (returned by receiver, waited for by sender),
 - its header file is wrapped with 'extern "C"' for convenient C++ access,
 - its Makefile packages the object in library form (static and shared) for optional library linking (.o can be built into project directly),
-- C test programs provided that demonstrate client and server usage, both with-, and with-out timeouts enabled.
+- C test programs provided that demonstrate client and server usage, both with-, and with-out timeouts enabled (see, eg, [./run_test2_demo.sh](./run_test2_demo.sh) - output shown here: [Test2_Output_No_Debug.txt](Test2_Output_No_Debug.txt) and [Test2_Output_With_Debug.txt](Test2_Output_With_Debug.txt)).
 
 The included Makefile builds shared and static libraries ```libimsgsockhdlr.so``` and ```libimsgsockhdlr.a```.
 
