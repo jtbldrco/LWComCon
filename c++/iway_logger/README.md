@@ -4,18 +4,18 @@
 
 By *header-file only*, we mean that no library is required for use; only inclusion of the header file itself.
 
-In addition, the main header file, [iway_logger.h](./iway_logger.h), is wrapped with 'extern "C"' so it compiles easily into both C and C++ programs identically without compiler-dependent wrappers.
+In addition, the main header file, [iway_logger.h](./iway_logger.h), is wrapped with 'extern "C"' so it compiles easily into both C and C++ programs identically without further compiler-dependent wrappers.
 
 iWay Logger includes test/demonstration programs written in C and in C++ - these programs exercise and illustrate use of the iWay Logger utility.  Working in this directory, you can extend the formatting options and content of rsyslog messages and test them immediately by updating these existing tests in parallel with your extensions.
 
-This document defines and illustrates all steps to incorporate rsyslog logging into a C or C++ application program using iWay Logger.
+This document defines and illustrates all steps to incorporate rsyslog logging into a C or C++ application program using iWay Logger.  **DON'T MISS the required rsyslog setup steps below for your Linux machine.**
 
 ## iWay Logger API
 
 The simple API is defined in [iway_logger.h](./iway_logger.h) and demonstrated here: [iway_logger_test_c.c](./iway_logger_test_c.c) and here: [iway_logger_test_cpp.cpp](./iway_logger_test_cpp.cpp).  Below is a summary.   
 #### Set log message program name
 
-If this macro is not invoked, the reported progname in log messages will be as defined in [iway_logger.h](./iway_logger.h) (presently iway_logger).
+If this following macro is not invoked, the reported progname in log messages will be as defined in [iway_logger.h](./iway_logger.h) (presently iway_logger).
 
 ```
 IWAY_LOG_SET_PROG_NAME( new-prog-name-here )
@@ -45,9 +45,9 @@ These values align exactly with the standard rsyslog macro values, which may be 
 ## iWay Logger Setup and Use
 
 
-### Configure rsyslog on Chosen Facility (local7 in this case)
+### Configure rsyslog on Chosen Facility (local7 used in this case)
 
-To enable rsyslog logging create (with root privileges) this file (with shown content) and then restart the rsyslog service once to pick up the new config ('HUP'ing rsyslog does not seem to pick up a new config):
+To enable rsyslog logging, create (with root privileges) this file (with shown content) and then restart the rsyslog service once to pick up the new config ('HUP'ing rsyslog does not seem to pick up a new config):
 
 ```
 $ cat /etc/rsyslog.d/90-iwaylogger.conf
@@ -58,11 +58,11 @@ local7.*                /var/log/ilog
 $ sudo systemctl restart rsyslog
 ```
 
-Note that if a different facility (local1, local5, etc.) is employed above, then file iway_logger.h must be updated also to match (see interior comments there).
+Note that if a different facility (local1, local5, etc.) is employed above, then file [iway_logger.h](./iway_logger.h) must be updated also to match the facility (see interior comments there).
 
 ### Testing New rsyslog Config
 
-After restarting the rsyslog server, you can test the above facility configuration from the command line.  Use two console windows.  In the first, enter:
+After the above steps including restarting the rsyslog server, you can test the above facility configuration from the command line.  Use two console windows.  In the first, enter:
 ```
 $ tail -f /var/log/ilog
 ```

@@ -42,8 +42,8 @@ static const char IWAY_DEFAULT_PROGRAMNAME[] = "iway_logger";
 #define IWAY_PROGNAME_MAX_LEN 32
 static char _iway_log_prog_name_[ IWAY_PROGNAME_MAX_LEN ] = { 0 };
 
-// Gnu rsyslog provides facilities local0 thru local7.  Use 7.
-// (configured in /etc/rsyslog.d/90-iway.conf)
+// Gnu rsyslog provides facilities local0 thru local7.  We use 7.
+// (configured in /etc/rsyslog.d/90-ilog.conf)
 #define IWAY_LOG_FACILITY LOG_LOCAL7
 #define IWAY_LOG_OPTIONS LOG_CONS | LOG_PID | LOG_NDELAY
 
