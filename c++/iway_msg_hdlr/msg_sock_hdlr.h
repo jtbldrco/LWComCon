@@ -212,7 +212,7 @@ sock_struct_t *sock_struct_init_recv( const char *host, const int port,
 } // End sock_struct_init_recv(...)
 
 sock_struct_t *sock_struct_init_send( const char *host, const int port,
-                                      const char cto ) {
+                                      const int cto ) {
     return sock_struct_init_recv( host, port, 0, cto );
 } // End sock_struct_init_send()
     
