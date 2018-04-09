@@ -50,7 +50,7 @@ These values align exactly with the standard rsyslog macro values, which may be 
 To enable rsyslog logging, create (with root privileges) this file (with shown content) and then restart the rsyslog service once to pick up the new config ('HUP'ing rsyslog does not seem to pick up a new config):
 
 ```
-$ cat /etc/rsyslog.d/90-iwaylogger.conf
+$ cat /etc/rsyslog.d/90-ilog.conf
 ### Enable logging to facility local7 on file /var/log/ilog
 local7.none             -/var/log/syslog
 local7.*                /var/log/ilog
@@ -59,6 +59,8 @@ $ sudo systemctl restart rsyslog
 ```
 
 Note that if a different facility (local1, local5, etc.) is employed above, then file [iway_logger.h](./iway_logger.h) must be updated also to match the facility (see interior comments there).
+
+Also note, log file rotation is an important aspect of the rsyslog logging model, but it's not automatically enabled for new log files introduced into /etc/rsyslog.d/ configurations.  To enable log file rotation for /var/log/ilog (and avoid an eventual exhaustion of disk file space!), edit file ```/etc/logrotate.d/rsyslog``` and add your new log file ```/var/log/ilog``` on a separate line just below entry ```/var/log/syslog```.  Other changes can be made as desired, but this is probably your minimum required step to prevent low/no disk space problems in the future.
 
 ### Testing New rsyslog Config
 
