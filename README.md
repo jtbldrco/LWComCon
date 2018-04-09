@@ -15,7 +15,13 @@ This repository contains materials to introduce and demonstrate a TCP network-ba
 - Linux rsyslog logging techniques and utilities, and
 - other utilities to ease C++ multi-threaded & network programming, testing, and trouble-shooting.
 
-## Example Use Case: The Orderly Shutdown Pattern
+## Example C++ Use Case: Fully implemented Lightweight Command and Control App
+
+This subdirectory project employs all the pieces above in a working example that is intended to be run from two console windows to illustrate the dynamics.  See [./c++/lwcomcon_full](./c++/lwcomcon_full).
+
+## Example Java Use Case: The Orderly Shutdown Pattern
+
+These Java examples are similar to the above C++ examples but they are more simple in scope (easier to follow) and don't leverage LWComCon beyond the use-case of the Orderly Shutdown Pattern.
 
 The Orderly Shutdown Pattern (OSP), using TCP/IP-based network communications, allows a *listener thread* of a running service of arbitrary complexity to monitor for, and respond to *at a time of its own choosing*, a request to shutdown (or, quite frankly, any request).  If/when such request is received, the service will then be able to complete any critical work it has queued or initiated (at the discretion of the service) prior to any response - for example, entering a shutdown process leading ultimately to termination.
 
@@ -68,7 +74,7 @@ The Basic implementation includes these features -
 - Use of a listener socket in the service process which remains open for the duration awaiting a termination message.
 - An 'uninterruptible work' loop that runs in the service, periodically checking for termination message arrival.
 
-### The OSP Full Implementation
+### The LWComCon Full Implementation
 
 The Full implementation employs all of the elements of the Basic implementation, and adds the following - 
 
@@ -76,13 +82,13 @@ The Full implementation employs all of the elements of the Basic implementation,
 - An enhancement to the termination listener socket management to *fend off* poorly formed, or completely random, messages received on that socket.
 - An enhancement to the termination sender logic to allow the termination message to be sent from a host other than the host on which the target service is running.  For testing, this logic still supports 'localhost' as the target of the termination message.
 
-## Building and Running the OSP Examples
+## Building and Running the LWComCon Examples
 
 All the examples are command-line only -- no GUI stuff involved.  That is both intentional and practical - these are server-based concepts, not desktop-based (although they *can* be employed there).  To run some of the examples, only a single console window is required; for others, a second console window must be used (for example, to execute a stop script on a service running in another window).
 
 All the examples have been built and tested on Ubuntu (specifically Ubuntu-server 17.10) though no features specific to that distro have been employeed.  For the Java pieces, even older JDK releases will work but testing has been done using Java 1.7 thru Java 9.
 
-All the elements of the OSP repository contain working versions (mt, socket, basic, full).  There are build scripts or make files for each.  Details on installing the proper software for your environment is outside the scope of this effort but there are innumerable sources for this and I've added in below some of the install steps taken from my cmd-line history.
+All the elements of the LWComCon repository contain working versions (mt, socket, basic, full).  There are build scripts or make files for each.  Details on installing the proper software for your environment is outside the scope of this effort but there are innumerable sources for this and I've added in below some of the install steps taken from my cmd-line history.
 
 In brief, you will need C++ or Java development tools on your machine to run these examples.  You can download a tarfile from github, or clone the repository (preferred, and easy as pie).  As noted throughout, an MIT Open Source License has been attached to everything - it's short, direct, complete, and quite permissive, but PLEASE READ THE LICENSE (appearing below) if you are unfamiliar with its permission grants and restrictions.
 
