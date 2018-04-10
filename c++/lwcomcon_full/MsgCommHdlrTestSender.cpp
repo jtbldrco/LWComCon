@@ -31,18 +31,37 @@
 
 #include <iostream>
 #include <stdio.h>
+#include <time.h>
 
 #define HOST "localhost"
 #define PORT 16273
 
 #define TEN_SECONDS 10
 
+#define SEND_MSG_LEN 256
+
 int main( int argc, char *argv[] ) {
 
 #ifdef DEBUG_THREADEDWORKER
     std::cout << "\nFunction main(), main thread: " << MY_TID << std::endl;
 #endif
+
+    char send_msg[SEND_MSG_LEN] = { 0 };
+    strcpy( send_msg, "This is the first string to be x-ferred!!! " );
+
+    if( argc > 1 ) {
+        memset( send_msg, 0, SEND_MSG_LEN );
+        strcpy( send_msg, argv[1] );
+    }
+
+    time_t utctime;
+    struct tm *timeinfo;
+    time( &utctime );
+    timeinfo = localtime( &utctime );
  
+    printf( "asctime(timeinfo): %s\n", asctime(timeinfo) );
+    strcat( send_msg, asctime(timeinfo) );
+
     int connectTimeout = 10;
     int clientTimeout = 10;
 
@@ -56,7 +75,7 @@ int main( int argc, char *argv[] ) {
         return 1;
     }
 
-    std::string* pString1 = new std::string( "This is the first string to be x-ferred!!!" );
+    std::string* pString1 = new std::string( send_msg );
 
     cout << "MsgCommHdlrTestSender ready to send message - enqueuing ...\n" << *pString1 << std::endl;
 
