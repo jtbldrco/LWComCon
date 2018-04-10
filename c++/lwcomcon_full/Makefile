@@ -30,7 +30,7 @@ CFLAGS += -pthread \
           -I./ \
           -I/usr/local/include 
 
-CXXFLAGS += -std=c++0x
+CXXFLAGS += $(CFLAGS) -std=c++0x
 
 # OPTIONAL - enable debugging to track internal execution flow
 ##### CPPFLAGS += -DDEBUG -DDEBUG_THREADEDWORKER -DDEBUG_MSGCOMMHDLR
@@ -58,10 +58,10 @@ $(PROG1):	$(PROG1_OBJS)
 $(PROG2):	$(PROG2_OBJS)
 	$(CXX) -o $@ $^ $(PN_LDFLAGS)
 
-%.o:	$(PROJECT_ROOT)%.cpp $(PROJECT_ROOT)%.h Makefile
-	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) $< -o $@
+%.o:	$(PROJECT_ROOT)%.cpp
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) $< -o $@
 
-%.o:	$(PROJECT_ROOT)%.c $(PROJECT_ROOT)%.h Makefile
+%.o:	$(PROJECT_ROOT)%.c
 	$(CXX) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 clean:

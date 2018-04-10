@@ -42,9 +42,13 @@ int main( int argc, char *argv[] ) {
 #ifdef DEBUG_THREADEDWORKER
     std::cout << "\nFunction main(), main thread: " << MY_TID << std::endl;
 #endif
+ 
+    int connectTimeout = 10;
+    int clientTimeout = 10;
 
     // Object will do its work on a separate native thread -
-    MsgCommHdlr msgCommHdlrSender( string( "msgCommHdlrSender" ), sender, HOST, PORT );
+    MsgCommHdlr msgCommHdlrSender( string( "msgCommHdlrSender" ), sender,
+                                   HOST, PORT, connectTimeout, clientTimeout );
 
     // Internally, calls ThreadedWorker.startWorker();
     if( ! msgCommHdlrSender.go() ) {

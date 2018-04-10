@@ -27,6 +27,7 @@
 
 #include "ThreadedWorker.h"
 #include "ThreadSafeMsgPtrQueue.h"
+#include "msg_sock_hdlr.h"
 
 /**************************************************************************
  * Implementation of MsgCommHdlr derived from ThreadedWorker (ie, must
@@ -42,12 +43,8 @@ class MsgCommHdlr : public ThreadedWorker {
 public:
     MsgCommHdlr( const std::string instanceName,
                  const MCH_Function function,
-                 const std::string host, const int port );
-
-    MsgCommHdlr( const std::string instanceName,
-                 const MCH_Function function,
                  const std::string host, const int port,
-                 const int connectTo, const int readTo );
+                 const int connectTmo, const int readTmo );
 
     // 'virtual' destructor is important for native
     // thread mgmt code in base class
@@ -86,13 +83,13 @@ private:
     MCH_Function _function;
 
     // Sends an enqueued std::string ptr and then deletes it
-    int doSendEnqueuedMessage();
+    sock_struct_t * doSendEnqueuedMessage( sock_struct_t *s );
+    sock_struct_t * doSenderSetup();
 
     // Receives a buffer from the network and new's an std::string
     // and stores a pointer to it in the queue
-    int doRecvAndEnqueueMessage();
-    int doRecvAndEnqueueMessage( const int connection_to_secs,
-                                 const int read_to_secs);
+    sock_struct_t * doRecvAndEnqueueMessage( sock_struct_t *s );
+    sock_struct_t * doReceiverSetup();
 
     char _receiveBuf[ RECV_MESSAGE_BUF_LEN ];
 
