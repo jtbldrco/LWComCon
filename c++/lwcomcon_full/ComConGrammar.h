@@ -29,12 +29,9 @@
  * ComConGrammar.h
  */
 
-
-ENUM class ComConGrammar : std::string {
-    SHUTDOWN = std::string( ":SHUTDOWN:" ),
-    CONSUMER = std::string( ":CONSUMER:" ),
-    PRODUCER = std::string( ":PRODUCER:" )
-};
-
+// Quotes are required here
+#define GMR_SHUTDOWN ":SHUTDOWN:"
+#define GMR_CONSUMER ":CONSUMER:"
+#define GMR_PRODUCER ":PRODUCER:"
 
 #endif /* SRC_COMCONGRAMMAR_H_ */

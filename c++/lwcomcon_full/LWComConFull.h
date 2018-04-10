@@ -40,12 +40,15 @@
 class LWComConFull {
 
 public:
-    LWComConFull( const std::string instanceName,
-                  const std::string host, const int port );
+    LWComConFull( const char * instanceName,
+                  const char * lhost, const int lport,
+                  const char * phost, const int pport,
+                  const char * chost, const int cport );
 
     // 'virtual' destructor
     virtual ~LWComConFull();
 
+    void go();
     void signalShutdown( bool flag );
     bool isShutdownSignaled() const;
 
@@ -55,8 +58,12 @@ protected:
 private:
 
     const std::string _instanceName;
-    const std::string _host;
-    const int _port;
+    const std::string _lhost;
+    const int _lport;
+    const std::string _phost;
+    const int _pport;
+    const std::string _chost;
+    const int _cport;
 
     bool _shutdownSignaled;
 

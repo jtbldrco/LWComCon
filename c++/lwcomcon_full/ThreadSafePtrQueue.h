@@ -196,7 +196,7 @@ public:
 
     /***********************************************************************
      */
-    size_type size() {
+    int size() {
 
 #ifdef DEBUG_THREADSAFEPTRQUEUE
         cout << "In " << __PRETTY_FUNCTION__ << " pre-mutex, on thread "

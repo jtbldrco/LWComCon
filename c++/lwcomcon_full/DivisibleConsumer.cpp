@@ -30,17 +30,51 @@
 #include <iostream>
 #include <string>
 
+
+void showUsage() {
+    std::cout << "  usage: ./DivisibleConsumer <listener_host_ifc> <listener_host_port>" << std::endl
+              << "                             <consumer_host_ifc> <consumer_host_port>" << std::endl;
+}
+
+int main( int argc, char *argv[] ) {
+
+    if( argc < 5 ) {
+        showUsage();
+        return 1;
+    }
+
+    DivisibleConsumer dc( "DivCon", argv[1], atoi( argv[2] ),
+                                    argv[3], atoi( argv[4] ),
+                                    10, 10 );
+    dc.go();
+
+    return 0;
+} // End main(...)
+
+
+
 #define MAINLOOP_SEND_SLEEP_SECS 1
 
 /**************************************************************************
  * DivisibleConsumer implementation contains MsgCommHdlr's for
  * Command/Control receipt (receiver) and for sharing work product (sender)
  */
-DivisibleConsumer::DivisibleConsumer( const std::string instanceName,
-    const std::string host, const int port,
-    const int connectTmo, const int readTmo )
+DivisibleConsumer::DivisibleConsumer(
+    const char * instanceName,
+    const char * lhost, const int lport,
+    const char * chost, const int cport,
+    const int connectTmo, const int readTmo ) :
+    _lhost( lhost ), _lport( lport ),
+    _chost( chost ), _cport( cport ),
+    _senderMch( std::string( "SenderFor" ) + std::string( instanceName ),
+                MCH_Function::sender, _chost, _cport, connectTmo, readTmo ),
+    _receiverMch( std::string( "ReceiverFor" ) + std::string( instanceName ),
+                  MCH_Function::receiver, _lhost, _lport, connectTmo, readTmo )
 {
-    IWAY_LOG_SET_PROG_NAME( "DivisibleConsumer." + instanceName.c_str() );
+    char logName[128] = { 0 };
+    strcpy( logName, "DivisibleConsumer." );
+    strcat( logName, instanceName );
+    IWAY_LOG_SET_PROG_NAME( logName );
 
     // Two MsgCommHdlr objects will deal with all incoming and outgoing
     // message traffic.  DivisibleConsumer will interact with each of their
@@ -48,20 +82,13 @@ DivisibleConsumer::DivisibleConsumer( const std::string instanceName,
     // and responding to receiver messages.  Let's get them constructed
     // and running.
 
-    std::string senderInstanceName( "SenderFor" + instanceName.c_str() );
-        _senderMch( senderInstanceName, MSH_Function::sender,
-                    host, port, connectTmo, readTmo );
-        _senderMch.go();
+    _senderMch.go();
+    _receiverMch.go();
 
-    std::string receiverInstanceName( "ReceiverFor" + instanceName.c_str() );
-        _receiverMch( receiverInstanceName, MSH_Function::receiver,
-                      host, port, connectTmo, readTmo );
-        _receiverMch.go();
-
-        // Important thread management - wait until the
-        // MsgCommHdlr objects terminate and return
-        _senderMch.join();
-        _receiverMch.join();
+    // Important thread management - wait until the
+    // MsgCommHdlr objects terminate and return
+    _senderMch.join();
+    _receiverMch.join();
 
 } // End DivisibleConsumer(...)
 
@@ -72,7 +99,7 @@ DivisibleConsumer::~DivisibleConsumer()
 
 
 /**************************************************************************/
-DivisibleConsumer::go() {
+void DivisibleConsumer::go() {
 
     mainLoop();
 
@@ -111,10 +138,10 @@ void DivisibleConsumer::mainLoop() {
 
         pMessage = _receiverMch.dequeueMessage();
         if( NULL != pMessage ) {
-            if( *pMessage.compare( ComConGrammar::SHUTDOWN ) == 0 ) {
+            if( pMessage->compare( GMR_SHUTDOWN ) == 0 ) {
                 // Shutdown has been signaled
-                _senderMsh.signalShutdown( true );
-                _receiverMsh.signalShutdown( true );
+                _senderMch.signalShutdown( true );
+                _receiverMch.signalShutdown( true );
             } else {
                 strcpy( logMsg, "Received unrecognized command: " );
                 strcat( logMsg, pMessage->c_str() );
@@ -136,20 +163,25 @@ void DivisibleConsumer::mainLoop() {
 void DivisibleConsumer::doConsumerThing()
 {
     char results[256] = { 0 };
+    char logMsg[128] = { 0 };
 
-    std::string pString = _receiverMch.dequeueMessage();
+    std::string *pString = _receiverMch.dequeueMessage();
     if( pString != NULL ) {
-        if( *pMessage.compare( ComConGrammar::PRODUCER ) == 0 ) {
+        if( pString->compare( GMR_PRODUCER ) == 0 ) {
             // Got a good message from the producer side - 
             // consume it!
+
+
+//TODO Strip out number... for now ...
+            int number = 55000;
             do_compilation( number, results );
         } else {
             strcpy( logMsg, "Received unrecognized command: " );
-            strcat( logMsg, pMessage->c_str() );
+            strcat( logMsg, pString->c_str() );
             IWAY_LOG( IWAY_LOG_INFO, logMsg );
 
         }
-        delete pMessage;
+        delete pString;
     }
 
 

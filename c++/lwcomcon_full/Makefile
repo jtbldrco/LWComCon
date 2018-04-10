@@ -29,6 +29,7 @@ CXX = g++
 # Compiler Flags: C, C++, and Preprocessor
 CFLAGS += -g -O0
 CFLAGS += -pthread \
+          -I./prodcon_utils \
           -I../iway_msg_hdlr \
           -I../iway_logger \
           -I./ \

@@ -30,6 +30,29 @@
 #include <iostream>
 #include <string>
 
+
+void showUsage() {
+    std::cout << "  usage: ./DivisibleProducer <listener_host_ifc> <listener_host_port>" << std::endl
+              << "                             <control_host_ifc> <control_host_port>"   << std::endl;
+
+}
+
+int main( int argc, char *argv[] ) {
+
+    if( argc < 5 ) {
+        showUsage();
+        return 1;
+    }
+
+    DivisibleProducer dc( "DivPro", argv[1], atoi( argv[2] ),
+                                    argv[3], atoi( argv[4] ),
+                                    10, 10 );
+    dc.go();
+
+    return 0;
+} // End main(...)
+
+
 #define MAINLOOP_SEND_SLEEP_SECS 1
 
 // These values result in generated random numbers of
@@ -42,11 +65,26 @@
  * DivisibleProducer implementation contains MsgCommHdlr's for
  * Command/Control receipt (receiver) and for sharing work product (sender)
  */
-DivisibleProducer::DivisibleProducer( const std::string instanceName,
-    const std::string host, const int port,
-    const int connectTmo, const int readTmo )
+DivisibleProducer::DivisibleProducer(
+    const char * instanceName,
+    const char * lhost, const int lport,
+    const char * chost, const int cport,
+    const int connectTmo, const int readTmo ) :
+    _lhost( lhost ), _lport( lport ),
+    _chost( chost ), _cport( cport ),
+    _senderMch( std::string( "SenderFor" ) + std::string( instanceName ),
+                MCH_Function::sender,
+                _chost, _cport, connectTmo, readTmo ),
+    _receiverMch( std::string( "ReceiverFor" ) + std::string( instanceName ),
+                  MCH_Function::receiver,
+                  _lhost, _lport, connectTmo, readTmo )
 {
-    IWAY_LOG_SET_PROG_NAME( "DivisibleProducer." + instanceName.c_str() );
+    char logName[128] = { 0 };
+    strcpy( logName, "DivisibleProducer." );
+    strcat( logName, instanceName );
+    IWAY_LOG_SET_PROG_NAME( logName );
+
+    IWAY_LOG_SET_PROG_NAME( logName );
 
     // Two MsgCommHdlr objects will deal with all incoming and outgoing
     // message traffic.  DivisibleProducer will interact with each of their
@@ -54,20 +92,13 @@ DivisibleProducer::DivisibleProducer( const std::string instanceName,
     // and responding to receiver messages.  Let's get them constructed
     // and running.
 
-    std::string senderInstanceName( "SenderFor" + instanceName.c_str() );
-        _senderMch( senderInstanceName, MSH_Function::sender,
-                    host, port, connectTmo, readTmo );
-        _senderMch.go();
+    _senderMch.go();
+    _receiverMch.go();
 
-    std::string receiverInstanceName( "ReceiverFor" + instanceName.c_str() );
-        _receiverMch( receiverInstanceName, MSH_Function::receiver,
-                      host, port, connectTmo, readTmo );
-        _receiverMch.go();
-
-        // Important thread management - wait until the
-        // MsgCommHdlr objects terminate and return
-        _senderMch.join();
-        _receiverMch.join();
+    // Important thread management - wait until the
+    // MsgCommHdlr objects terminate and return
+    _senderMch.join();
+    _receiverMch.join();
 
 } // End DivisibleProducer(...)
 
@@ -78,7 +109,7 @@ DivisibleProducer::~DivisibleProducer()
 
 
 /**************************************************************************/
-DivisibleProducer::go() {
+void DivisibleProducer::go() {
 
     mainLoop();
 
@@ -116,10 +147,10 @@ void DivisibleProducer::mainLoop() {
 
         std::string *pMessage = _receiverMch.dequeueMessage();
         if( NULL != pMessage ) {
-            if( *pMessage.compare( ComConGrammar::SHUTDOWN ) == 0 ) {
+            if( pMessage->compare( GMR_SHUTDOWN ) == 0 ) {
                 // Shutdown has been signaled
-                _senderMsh.signalShutdown( true );
-                _receiverMsh.signalShutdown( true );
+                _senderMch.signalShutdown( true );
+                _receiverMch.signalShutdown( true );
             } else {
                 strcpy( logMsg, "Received unrecognized command: " );
                 strcat( logMsg, pMessage->c_str() );
@@ -145,8 +176,8 @@ void DivisibleProducer::doProducerThing() {
     // We must have a heap-based string to pass to the PtrQueue, also must
     // wrap it in the proper notation (CC_GRAM) for interpretation on the
     // other end.
-    std::string pString = new std::string( ComConGrammar::PRODUCER +
-                                           std::to_string( genResult ) );
+    std::string *pString = new std::string( GMR_PRODUCER +
+                                            std::to_string( genResult ) );
     _senderMch.enqueueMessage( pString );
 
 } // End doProducerThing()

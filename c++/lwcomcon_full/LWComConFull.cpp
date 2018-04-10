@@ -34,8 +34,9 @@
  */
 
 void showUsage() {
-    std::cout << "  usage: ../LWComCon <host_ifc> <host_port>" << std::endl;
-    std::cout << "example: ../LWComCon localhost 16273" << std::endl;
+    std::cout << "  usage: ../LWComCon <listener_host_ifc> <listener_host_port>" << std::endl
+              << "                     <producer_host_ifc> <producer_host_port>" << std::endl
+              << "                     <consumer_host_ifc> <consumer_host_port>" << std::endl;
 }
 
 int main( int argc, char *argv[] ) {
@@ -45,37 +46,55 @@ int main( int argc, char *argv[] ) {
         return 1;
     }
 
-    LWComConFull lwcc;
+    LWComConFull lwcc( "LWComCon", argv[1], atoi( argv[2] ),
+                                   argv[3], atoi( argv[4] ),
+                                   argv[5], atoi( argv[6] ) );
     lwcc.go();
 
     return 0;
 } // End main(...)
 
 
-
-LWComConFull::LWComConFull( const std::string instanceName,
-    const std::string host, const int port ) :
-    _instanceName( instanceName ), _host( host ), _port( port )
+/*************************************************************************
+ * LWComConFull - instanceName,
+ *                listenerInterface, listenerPort,
+ *                producerHost, producerPort,
+ *                consumerHost, consumerPort
+ */
+LWComConFull::LWComConFull( const char * instanceName,
+    const char * lhost, const int lport,
+    const char * phost, const int pport,
+    const char * chost, const int cport ) :
+    _instanceName( instanceName ),
+     _lhost( lhost ), _lport( lport ),
+     _phost( phost ), _pport( pport ),
+     _chost( chost ), _cport( cport )
 {} // End LWComConFull(...)
 
 
+/*************************************************************************/
 LWComConFull::~LWComConFull()
 {} // End ~LWComConFull()
 
 
-LWComConFull::go() {
+/*************************************************************************/
+void LWComConFull::go() {
     
     MsgCommHdlr mch_sender( "mch_sender", MCH_Function::sender,
-                            _host, _port, 10, 10 );
+                            _lhost, _lport, 10, 10 );
+    mch_sender.go();
+    mch_sender.join();
 
 } // End go()
 
 
+/*************************************************************************/
 void LWComConFull::signalShutdown( bool flag ) {
     _shutdownSignaled = flag;
 } // End signalShutdown(...)
 
 
+/*************************************************************************/
 bool LWComConFull::isShutdownSignaled() const{
     return _shutdownSignaled;
 }

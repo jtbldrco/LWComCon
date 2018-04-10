@@ -34,8 +34,9 @@
 class DivisibleConsumer {
 
 public:
-    DivisibleConsumer( const std::string instanceName,
-                       const std::string host, const int port,
+    DivisibleConsumer( const char * instanceName,
+                       const char * lhost, const int lport,
+                       const char * chost, const int cport,
                        const int connectTmo, const int readTmo );
 
     // 'virtual' destructor is important for native
@@ -53,6 +54,11 @@ private:
 
     void mainLoop();
     void doConsumerThing();
+
+    std::string _lhost;
+    int _lport;
+    std::string _chost;
+    int _cport;
 
 };
 
