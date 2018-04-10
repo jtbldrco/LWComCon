@@ -6,16 +6,20 @@ FULL_LIB_NAME_SO = lib$(LIB_NAME).so
 
 MSG_HDLR_LIB_DIR = ../iway_msg_hdlr
 
-PROG1 = MsgCommHdlrTestSender
-PROG2 = MsgCommHdlrTestReceiver
+MAIN_PROG = LWComConFull
 
-PROGRAMNAMES = $(PROG1) $(PROG2)
+TEST_PROG1 = MsgCommHdlrTestSender
+TEST_PROG2 = MsgCommHdlrTestReceiver
+
+PROGRAMNAMES = $(MAIN_PROG) $(TEST_PROG1) $(TEST_PROG2)
 
 ## TODO - create library of ThreadedWorker and ThreadMapper, then access that
 ## from here; add include paths to pick up the headers for those classes
 
-PROG1_OBJS = MsgCommHdlrTestSender.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
-PROG2_OBJS = MsgCommHdlrTestReceiver.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
+MAIN_PROG_OBJS = LWComConFull.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o DivisibleConsumer.o DivisibleProducer.o
+
+TEST_PROG1_OBJS = MsgCommHdlrTestSender.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
+TEST_PROG2_OBJS = MsgCommHdlrTestReceiver.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
 
 # Compilers
 CC = gcc
@@ -52,10 +56,13 @@ PN_LDFLAGS = -L/usr/lib/x86_64-linux-gnu \
 
 all:	$(PROGRAMNAMES)
 
-$(PROG1):	$(PROG1_OBJS)
+$(MAIN_PROG):	$(MAIN_PROG_OBJS)
 	$(CXX) -o $@ $^ $(PN_LDFLAGS)
 
-$(PROG2):	$(PROG2_OBJS)
+$(TEST_PROG1):	$(TEST_PROG1_OBJS)
+	$(CXX) -o $@ $^ $(PN_LDFLAGS)
+
+$(TEST_PROG2):	$(TEST_PROG2_OBJS)
 	$(CXX) -o $@ $^ $(PN_LDFLAGS)
 
 %.o:	$(PROJECT_ROOT)%.cpp
@@ -65,5 +72,5 @@ $(PROG2):	$(PROG2_OBJS)
 	$(CXX) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 clean:
-	rm -fr $(PROGRAMNAMES) $(PROG1_OBJS) $(PROG2_OBJS)
+	rm -fr $(PROGRAMNAMES) $(MAIN_PROG) $(TEST_PROG1_OBJS) $(TEST_PROG2_OBJS)
 

@@ -61,7 +61,7 @@ public:
 
     // Receives a pointer to a heap-based std::string.  String WILL
     // BE DELETED when and if its content is sent over the network.
-    int enqueueMessage( std::string *msg );
+    void enqueueMessage( std::string *msg );
 
 protected:
     // Required by base class

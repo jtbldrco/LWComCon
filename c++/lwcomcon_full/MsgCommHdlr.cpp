@@ -353,7 +353,7 @@ std::string* MsgCommHdlr::dequeueMessage() {
  * Externally callable - receives a pointer to a heap-based std::string.
  * String WILL BE DELETED when and if its content is sent over the network.
  */
-int MsgCommHdlr::enqueueMessage( std::string *msg ) {
+void MsgCommHdlr::enqueueMessage( std::string *msg ) {
     _ptrQueue.enQueueElementPtr( msg );
 
 } // End enqueueMessage(...)

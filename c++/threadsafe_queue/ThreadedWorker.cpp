@@ -190,7 +190,7 @@ void ThreadedWorker::doShutdown() {
 
 
 /**************************************************************************/
-const std::string ThreadedWorker::getInstanceName() {
+const std::string ThreadedWorker::getInstanceName() const{
     return _instanceName;
 
 } // End getInstanceName()
@@ -207,7 +207,7 @@ void ThreadedWorker::signalShutdown( const bool flag ) {
     _shutdownSignaled = flag;
 } // End signalShutdown(...)
 
-const bool ThreadedWorker::isShutdownSignaled() {
+const bool ThreadedWorker::isShutdownSignaled() const{
 
 #ifdef DEBUG_THREADEDWORKER
     std::cout << "Entered " << __PRETTY_FUNCTION__  << ", object " << _instanceName

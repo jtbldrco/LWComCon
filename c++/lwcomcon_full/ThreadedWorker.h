@@ -75,7 +75,7 @@ public:
     // attempted before it joined with from the first call.
     virtual bool startWorker() final;
 
-    const std::string getInstanceName();
+    const std::string getInstanceName() const;
     virtual void signalShutdown( const bool flag );
     static void threadSleep( const int milliseconds );
     void join(); // Expose join() to external objects
@@ -91,7 +91,7 @@ protected:
     virtual const bool isThreadRunning() = 0;
 
     std::string _instanceName;
-    const bool isShutdownSignaled();
+    const bool isShutdownSignaled() const;
 
 private:
     void doShutdown(); // Internal access
