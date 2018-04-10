@@ -4,6 +4,8 @@ LIB_NAME = imsgsockhdlr
 FULL_LIB_NAME_A = lib$(LIB_NAME).a
 FULL_LIB_NAME_SO = lib$(LIB_NAME).so
 
+LIB_NAMES = $(FULL_LIB_NAME_A) $(FULL_LIB_NAME_SO)
+
 TEST_PROG1 = msg_sock_hdlr_test_01
 TEST_PROG1_OBJS = msg_sock_hdlr_test_01.o
 TEST_PROG2 = msg_sock_hdlr_test_02
@@ -39,7 +41,8 @@ PN_LDFLAGS = -L/usr/lib/x86_64-linux-gnu -L$(LIB_DIR)
 
 all:	$(BUILD_PRODUCTS)
 
-install:	$(BUILD_PRODUCTS)
+install:	$(LIB_NAMES)
+	cp $(FULL_LIB_NAME_A) /usr/lib
 	cp $(FULL_LIB_NAME_SO) /usr/lib
 
 $(FULL_LIB_NAME_A):	$(LIB_OBJS)
