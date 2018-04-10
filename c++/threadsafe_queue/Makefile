@@ -1,10 +1,12 @@
 PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 PROG1 = ThreadSafeMsgPtrQueueTest
+PROG2 = ThreadSafePtrQueueTest
 
-PROGRAMNAMES = $(PROG1)
+PROGRAMNAMES = $(PROG1) $(PROG2)
 
 PROG1_OBJS = ThreadSafeMsgPtrQueueTest.o ThreadMapper.o ThreadedWorker.o ThreadedWorkerTester.o
+PROG2_OBJS = ThreadSafePtrQueueTest.o ThreadMapper.o ThreadedWorker.o ThreadedWorkerTester.o
 
 # Compilers
 CC = gcc
@@ -30,6 +32,9 @@ all:	$(PROGRAMNAMES)
 $(PROG1):	$(PROG1_OBJS)
 	$(CXX) -o $@ $^ $(PN_LDFLAGS)
 
+$(PROG2):	$(PROG2_OBJS)
+	$(CXX) -o $@ $^ $(PN_LDFLAGS)
+
 %.o:	$(PROJECT_ROOT)%.cpp
 	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
@@ -37,5 +42,5 @@ $(PROG1):	$(PROG1_OBJS)
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
 
 clean:
-	rm -fr $(PROGRAMNAMES) $(PROG1_OBJS)
+	rm -fr $(PROGRAMNAMES) $(PROG1_OBJS) $(PROG2_OBJS)
 

@@ -1,5 +1,5 @@
-#ifndef SRC_THREADSAFEMSGPTRQUEUE_H_
-#define SRC_THREADSAFEMSGPTRQUEUE_H_
+#ifndef SRC_THREADSAFEPTRQUEUE_H_
+#define SRC_THREADSAFEPTRQUEUE_H_
 
 /**************************************************************************
  * MIT License                                                            *
@@ -26,7 +26,7 @@
  **************************************************************************/
 
 // Note - included for DEBUG builds to resolve the MY_TID symbol.
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
+#ifdef DEBUG_THREADSAFEPTRQUEUE
 #include "ThreadMapper.h"
 #endif
 
@@ -40,18 +40,18 @@
  * it's being used as a std::deque<std::string*> throughout this repo,
  * it could be used as a queue of pointers to any object.
  *
- * ThreadSafeMsgPtrQueue.h
+ * ThreadSafePtrQueue.h
  *
  * A Class that HasA queue but offers only mutexed access to it.
  * Actually, it has a deque but that's only because that gives
  * the implementation an iterator to purge its content - 
  * effectively, externally, it's a queue.
  *
- * Class ThreadSafeMsgPtrQueue accepts and returns pointers to heap-
- * based objects - std::string herein.  It NEVER allocates memory
- * or frees memory related to its collection of std::string object
- * pointers EXCEPT when its method ThreadSafeMsgPtrQueue::deleteAll()
- * is called.  In that case, ThreadSafeMsgPtrQueue iterates over its
+ * Class ThreadSafePtrQueue accepts and returns pointers to heap-
+ * based objects - eg, std::string.  It NEVER allocates memory
+ * or frees memory related to its collection of object
+ * pointers EXCEPT when its method ThreadSafePtrQueue::deleteAll()
+ * is called.  In that case, ThreadSafePtrQueue iterates over its
  * entire collection and deletes every string.
  * 
  * RULE - you pop a pointer, you own the pointer (ie, delete it as
@@ -76,46 +76,46 @@
 using namespace std;
 
 /**************************************************************************
- * Class MsgQueueLock manages the locking out of concurrent access to
- * the internal message queue - enforcing threadsafe behavior.
+ * Class PtrQueueLock manages the locking out of concurrent access to
+ * the internal pointer queue - enforcing threadsafe behavior.
  *
  * The lock_guard object is created with the passed in mutex.  It is
  * destructed in this class's destructor, automatically opening access again.
  */
-class MsgQueueLock {
+class PtrQueueLock {
 
 public:
 
     /**********************************************************************/
-    MsgQueueLock( string protectedObjectName, mutex *pMsgQueueMutex ) :
+    PtrQueueLock( string protectedObjectName, mutex *pQueueMutex ) :
         _protectedObjectName( protectedObjectName )
     {
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
+#ifdef DEBUG_THREADSAFEPTRQUEUE
         cout << "***** ATTEMPTING mutex on " << _protectedObjectName
              << ", on thread " << MY_TID << endl;
 #endif
 
-        _pGuard = new lock_guard<mutex>( *pMsgQueueMutex );
+        _pGuard = new lock_guard<mutex>( *pQueueMutex );
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
+#ifdef DEBUG_THREADSAFEPTRQUEUE
         cout << "***** SUCCESS mutexing " << _protectedObjectName
              << ", on thread " << MY_TID << endl;
 #endif
 
-    } // End MsgQueueLock(...)
+    } // End PtrQueueLock(...)
 
     /**********************************************************************/
-    ~MsgQueueLock() {
+    ~PtrQueueLock() {
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
+#ifdef DEBUG_THREADSAFEPTRQUEUE
         cout << "***** RELEASING mutex on " << _protectedObjectName
              << ", on thread " << MY_TID << endl;
 #endif
 
         delete _pGuard;
 
-    } // End ~MsgQueueLock()
+    } // End ~PtrQueueLock()
 
 private:
  
@@ -124,58 +124,74 @@ private:
     string _protectedObjectName;
 
 
-}; // End class MsgQueueLock{...}
+}; // End class PtrQueueLock{...}
 
-/**************************************************************************/
+/**************************************************************************
+ * Class ThreadSafePtrQueue is templatized and will hold pointers to 
+ * objects of type Element_Type.  To instatiate this class, for exampe, as
+ * a queue of pointers to std::string,  use the following declaration: 
+ *
+ *    ThreadSafePtrQueue< std::string > _msgPtrQueue;
+ *
+ * Then, to access a queue object:
+ * 
+ *    std::string *pString = _msgPtrQueue.deQueueElementPtr();
+ *
+ * NOTE that the semantics of the ThreadSafePtrQueue require that the
+ * object that pops a pointer owns that pointer.  Therefore, if you pop
+ * a pointer you may use it and then MUST delete the pointed to object.
+ */
+
 template<class Element_Type>
-class ThreadSafeMsgPtrQueue {
+
+class ThreadSafePtrQueue {
 
 public:
 
     /**********************************************************************/
-    ThreadSafeMsgPtrQueue( string name ) : 
+    ThreadSafePtrQueue( string name ) : 
         _instanceName( name )
     {
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
-        cout << "In ThreadSafeMsgPtrQueue( " << _instanceName << " )" << endl;
+#ifdef DEBUG_THREADSAFEPTRQUEUE
+        cout << "In ThreadSafePtrQueue( " << _instanceName << " )" << endl;
 #endif
-        _pMsgPtrQueueMutex = new mutex();
-    } // End ThreadSafeMsgPtrQueue(...)
+        _pPtrQueueMutex = new mutex();
+    } // End ThreadSafePtrQueue(...)
 
 
     /**********************************************************************/
-    ~ThreadSafeMsgPtrQueue()
+    ~ThreadSafePtrQueue()
     {
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
-        cout << "In ~ThreadSafeMsgPtrQueue( " << _instanceName << " )"
+#ifdef DEBUG_THREADSAFEPTRQUEUE
+        cout << "In ~ThreadSafePtrQueue( " << _instanceName << " )"
              << ", on thread " << MY_TID << endl;
 #endif
 
         // Lock the collection and empty it now
-        MsgQueueLock lock( _instanceName, _pMsgPtrQueueMutex );
+        PtrQueueLock lock( _instanceName, _pPtrQueueMutex );
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
-        cout << "Deleting ThreadSafeMsgPtrQueue internal collection"
+#ifdef DEBUG_THREADSAFEPTRQUEUE
+        cout << "Deleting ThreadSafePtrQueue internal collection"
              << ", on thread " << MY_TID << endl;
 #endif
 
         deleteAll();
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
-        cout << "Deleted ThreadSafeMsgPtrQueue internal collection"
+#ifdef DEBUG_THREADSAFEPTRQUEUE
+        cout << "Deleted ThreadSafePtrQueue internal collection"
              << ", on thread " << MY_TID << endl;
 #endif
 
-        delete _pMsgPtrQueueMutex;
+        delete _pPtrQueueMutex;
     
-    } // End ~ThreadSafeMsgPtrQueue()
+    } // End ~ThreadSafePtrQueue()
 
 
     /***********************************************************************
      * Make copy ctor and assignment unavailable
      */
-    ThreadSafeMsgPtrQueue( ThreadSafeMsgPtrQueue const& ) = delete;
-    void operator=( ThreadSafeMsgPtrQueue const& ) = delete;
+    ThreadSafePtrQueue( ThreadSafePtrQueue const& ) = delete;
+    void operator=( ThreadSafePtrQueue const& ) = delete;
 
 
     /***********************************************************************
@@ -184,25 +200,23 @@ public:
      */
     void enQueueElementPtr( Element_Type *pElement ) {
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
+#ifdef DEBUG_THREADSAFEPTRQUEUE
         cout << "In " << __PRETTY_FUNCTION__ << " pre-mutex, on thread "
              << MY_TID << endl;
 #endif
 
-        MsgQueueLock lock( _instanceName, _pMsgPtrQueueMutex );
+        PtrQueueLock lock( _instanceName, _pPtrQueueMutex );
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
-#ifdef DEBUG_THREADEDWORKERTESTER_WARNING___ADDS_LONG_SLEEPS_IN_MSG_QUEUE
-        cout << "Post-mutex, enqueuing to _msgPtrQueue after 3 secs: " << *pElement
+#ifdef DEBUG_THREADEDWORKERTESTER_WARNING___ADDS_LONG_SLEEPS_IN_QUEUE
+        cout << "Post-mutex, enqueuing to _ptrQueue after 3 secs: " << *pElement
              << ", on thread " << MY_TID << endl;
         std::this_thread::sleep_for( std::chrono::milliseconds( 3000 ) );
 #endif
-#endif
 
-        _msgPtrQueue.push_back( pElement );
+        _ptrQueue.push_back( pElement );
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
-        cout << "=== PUSHED === " << *pElement << ", size now " << _msgPtrQueue.size()
+#ifdef DEBUG_THREADSAFEPTRQUEUE
+        cout << "=== PUSHED === " << *pElement << ", size now " << _ptrQueue.size()
              << ", on thread " << MY_TID << endl;
 #endif
 
@@ -211,45 +225,43 @@ public:
 
     /***********************************************************************
      * Returns a pointer to a string previously created on the
-     * heap external to this object (ThreadSafeMsgPtrQueue)
+     * heap external to this object (ThreadSafePtrQueue)
      */
     Element_Type* deQueueElementPtr() {
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
+#ifdef DEBUG_THREADSAFEPTRQUEUE
         cout << "In " << __PRETTY_FUNCTION__ << " pre-mutex, on thread "
              << MY_TID << endl;
 #endif
 
-        MsgQueueLock lock( _instanceName, _pMsgPtrQueueMutex );
+        PtrQueueLock lock( _instanceName, _pPtrQueueMutex );
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
-#ifdef DEBUG_THREADEDWORKERTESTER_WARNING___ADDS_LONG_SLEEPS_IN_MSG_QUEUE
-        cout << "Post-mutex, attempting msg dequeue after 3 secs"
+#ifdef DEBUG_THREADEDWORKERTESTER_WARNING___ADDS_LONG_SLEEPS_IN_QUEUE
+        cout << "Post-mutex, attempting dequeue after 3 secs"
              << ", on thread " << MY_TID << endl;
         std::this_thread::sleep_for( std::chrono::milliseconds( 3000 ) );
 #endif
-#endif
 
-        if( _msgPtrQueue.empty() ) {
+        if( _ptrQueue.empty() ) {
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
-        cout << "Call _msgPtrQueue.empty() reports true, returning. On thread " << MY_TID << endl;
+#ifdef DEBUG_THREADSAFEPTRQUEUE
+        cout << "Call _ptrQueue.empty() reports true, returning. On thread " << MY_TID << endl;
 #endif
 
             return NULL;
         }
     
-        Element_Type* front = _msgPtrQueue.front();
+        Element_Type* front = _ptrQueue.front();
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
+#ifdef DEBUG_THREADSAFEPTRQUEUE
         cout << "Queue front is: " << *front << ", on thread " << MY_TID << endl;
         cout << "Popping front, on thread " << MY_TID << endl;
 #endif
 
-        _msgPtrQueue.pop_front();
+        _ptrQueue.pop_front();
 
-#ifdef DEBUG_THREADSAFEMSGPTRQUEUE
-        cout << "=== POPPED === " << *front << ", size now " << _msgPtrQueue.size()
+#ifdef DEBUG_THREADSAFEPTRQUEUE
+        cout << "=== POPPED === " << *front << ", size now " << _ptrQueue.size()
              << ", on thread " << MY_TID << endl;
 #endif
 
@@ -269,12 +281,12 @@ public:
         // Template definition requires keyword typename here:
         typename deque< Element_Type * >::iterator iter;
         Element_Type *pElement;
-        for( iter = _msgPtrQueue.begin(); iter != _msgPtrQueue.end(); iter++ ) {
+        for( iter = _ptrQueue.begin(); iter != _ptrQueue.end(); iter++ ) {
             pElement = *iter;
             cout << "Removing from queue: " << *pElement << endl;
             delete pElement;
         } // End while(...)
-        _msgPtrQueue.clear();
+        _ptrQueue.clear();
    
     } // End deleteAll()
 
@@ -282,12 +294,12 @@ public:
 private:
 
     string _instanceName;
-    deque< Element_Type * > _msgPtrQueue;
+    deque< Element_Type * > _ptrQueue;
 
-    mutex * _pMsgPtrQueueMutex;
+    mutex * _pPtrQueueMutex;
 
 
-}; // End class ThreadSafeMsgPtrQueue
+}; // End class ThreadSafePtrQueue
 
-#endif /* SRC_THREADSAFEMSGPTRQUEUE_H_ */
+#endif /* SRC_THREADSAFEPTRQUEUE_H_ */
 

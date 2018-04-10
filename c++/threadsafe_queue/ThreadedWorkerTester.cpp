@@ -42,6 +42,15 @@ ThreadedWorkerTester::ThreadedWorkerTester( std::string instanceName,
     _pMsgQueue = pQueue; 
 }
 
+ThreadedWorkerTester::ThreadedWorkerTester( std::string instanceName,
+    ThreadSafePtrQueue< StringWithNoisyDestructor > * pQueue, 
+    const int enqueueCount, const int dequeueCount ) :
+    ThreadedWorker( instanceName ), _threadRunning( false ),
+    _enqueueCount( enqueueCount ), _dequeueCount( dequeueCount ) 
+{
+    _pQueue = pQueue; 
+}
+
 ThreadedWorkerTester::~ThreadedWorkerTester() {}
 
 /*

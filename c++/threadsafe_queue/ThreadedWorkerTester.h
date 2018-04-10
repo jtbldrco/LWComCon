@@ -28,6 +28,7 @@
 #include "ThreadedWorker.h"
 
 #include "ThreadSafeMsgPtrQueue.h"
+#include "ThreadSafePtrQueue.h"
 
 /**********************************************************************
  * Test implementation of class derived from ThreadedWorker.
@@ -50,6 +51,10 @@ class ThreadedWorkerTester : public ThreadedWorker {
 public:
     ThreadedWorkerTester( std::string instanceName,
         ThreadSafeMsgPtrQueue< StringWithNoisyDestructor > * queue,
+        const int enqueueCount, const int dequeueCount ); 
+
+    ThreadedWorkerTester( std::string instanceName,
+        ThreadSafePtrQueue< StringWithNoisyDestructor > * queue,
         const int enqueueCount, const int dequeueCount ); 
 
     // 'virtual' destructor is important for native
@@ -76,6 +81,7 @@ private:
     bool _threadRunning;
 
     ThreadSafeMsgPtrQueue< StringWithNoisyDestructor > * _pMsgQueue;
+    ThreadSafePtrQueue< StringWithNoisyDestructor > * _pQueue;
 
     const int _enqueueCount;
     const int _dequeueCount;
