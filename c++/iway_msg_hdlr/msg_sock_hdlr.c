@@ -30,6 +30,8 @@
 
 #include "msg_sock_hdlr.h"
 
+#include "iway_logger.h"
+
 // Busier servers may require greater backlog size - this defines the
 // number of queued client connect requests that the server can accommodate,
 // not the total number of concurrent client connections.

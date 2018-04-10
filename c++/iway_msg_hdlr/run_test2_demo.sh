@@ -28,3 +28,5 @@ echo "======================="
 cat test2_recv.out
 echo ""
 
+rm test2_send.out
+rm test2_recv.out

@@ -1,5 +1,5 @@
-#ifndef SRC_MSGSOCKHDLR_H_
-#define SRC_MSGSOCKHDLR_H_
+#ifndef SRC_MSG_SOCK_HDLR_H_
+#define SRC_MSG_SOCK_HDLR_H_
 
 /**************************************************************************
  * MIT License                                                            *
@@ -52,82 +52,83 @@ extern "C" {
 #include <sys/time.h>
 #include <signal.h>
 
-#include "iway_logger.h"
+// Requires C99 dialect
+#include <stdbool.h>
 
 
-
+// TODO - find a clever way to set the #defines AND
+//        these 'dump' strings in some wrapper marco
 char * MSH_DEFINE_NAME( const int value ) {
 
     switch ( value ) {
     case 0:
-        return "MSH_VALUE_UNSET";
+        return (char *)"MSH_VALUE_UNSET";
 
     case -100:
-        return "MSH_SOCK_STRUCT_INVALID";
+        return (char *)"MSH_SOCK_STRUCT_INVALID";
 
     case 100:
-        return "MSH_MESSAGE_SENT";
+        return (char *)"MSH_MESSAGE_SENT";
 
     case 101:
-        return "MSH_MESSAGE_NOT_SENT";
+        return (char *)"MSH_MESSAGE_NOT_SENT";
 
     case 102:
-        return "MSH_MESSAGE_RECVD";
+        return (char *)"MSH_MESSAGE_RECVD";
 
     case 103:
-        return "MSH_MESSAGE_NOT_RECVD";
+        return (char *)"MSH_MESSAGE_NOT_RECVD";
 
     case 104:
-        return "MSH_MESSAGE_RECVD_OVERFLOW";
+        return (char *)"MSH_MESSAGE_RECVD_OVERFLOW";
 
     case 105:
-        return "MSH_MESSAGE_RECV_TIMEOUT";
-
+        return (char *)"MSH_MESSAGE_RECV_TIMEOUT";
 
     case 200:
-        return "MSH_INVALID_SOCKSTRUCT";
+        return (char *)"MSH_INVALID_SOCKSTRUCT";
 
     case 201:
-        return "MSH_ERROR_ILLEGAL_INPUT";
+        return (char *)"MSH_ERROR_ILLEGAL_INPUT";
 
     case 202:
-        return "MSH_ERROR_GETADDRINFO";
+        return (char *)"MSH_ERROR_GETADDRINFO";
 
     case 203:
-        return "MSH_ERROR_SETSOCKET";
+        return (char *)"MSH_ERROR_SETSOCKET";
 
     case 204:
-        return "MSH_ERROR_SETSOCKOPT";
+        return (char *)"MSH_ERROR_SETSOCKOPT";
 
     case 205:
-        return "MSH_ERROR_SOCKBIND";
+        return (char *)"MSH_ERROR_SOCKBIND";
 
     case 206:
-        return "MSH_ERROR_SOCKLISTEN";
+        return (char *)"MSH_ERROR_SOCKLISTEN";
 
     case 207:
-        return "MSH_ERROR_NOCONNECT";
+        return (char *)"MSH_ERROR_NOCONNECT";
 
     case 208:
-        return "MSH_ERROR_SOCKACCEPT";
+        return (char *)"MSH_ERROR_SOCKACCEPT";
 
     case 209:
-        return "MSH_ERROR_ACK_RECV_FAIL";
+        return (char *)"MSH_ERROR_ACK_RECV_FAIL";
 
     case 210:
-        return "MSH_ERROR_ACK_SEND_FAIL";
+        return (char *)"MSH_ERROR_ACK_SEND_FAIL";
 
     case 301:
-        return "MSH_LISTENER_CREATED";
+        return (char *)"MSH_LISTENER_CREATED";
 
     case 302:
-        return "MSH_CLIENT_CONNECTED";
+        return (char *)"MSH_CLIENT_CONNECTED";
 
     case 303:
-        return "MSH_CONNECT_TIMEOUT";
+        return (char *)"MSH_CONNECT_TIMEOUT";
 
     default:
-        return "MSH_VALUE_UNKNOWN";
+        return (char *)"MSH_VALUE_UNKNOWN";
 
     }
 }
@@ -190,16 +191,18 @@ void sock_struct_dump( const sock_struct_t *s )
 
 // Function sock_struct_init_recv does not use, manage or delete memory
 // pointed to by host.  Caller is responsible for that memory.
-sock_struct_t *sock_struct_init_recv( const char *host, const int port, 
-                                      const int lto, const int cto )
+sock_struct_t *sock_struct_init_recv( const char *host,
+                                      const int port, 
+                                      const int lto,
+                                      const int cto )
 {
-    sock_struct_t *s = malloc( sizeof(sock_struct_t) );
+    sock_struct_t *s = (sock_struct_t*)malloc( sizeof(sock_struct_t) );
     memset( s, 0, sizeof(sock_struct_t) );
     if( host == NULL ) {
         s->host = NULL;
     } else {
         int host_len = strlen( host ) + 1;
-        char *pHost = malloc( host_len );
+        char *pHost = (char*)malloc( host_len );
         memset( pHost, 0, host_len );
         memcpy( pHost, host, host_len );
         s->host = pHost;
@@ -211,7 +214,8 @@ sock_struct_t *sock_struct_init_recv( const char *host, const int port,
     return s;
 } // End sock_struct_init_recv(...)
 
-sock_struct_t *sock_struct_init_send( const char *host, const int port,
+sock_struct_t *sock_struct_init_send( const char *host,
+                                      const int port,
                                       const int cto ) {
     return sock_struct_init_recv( host, port, 0, cto );
 } // End sock_struct_init_send()
@@ -226,6 +230,7 @@ void sock_struct_close_client( sock_struct_t *s ) {
 // 'With Time-Out' (_wto) form actually does two things - first, the server (listener) is
 // capable of listening for a client connection with periodic checks to see if there
 void sock_struct_destroy( sock_struct_t *s ) {
+    if( s == NULL ) return;
     if( s->lsd != 0 ) {
         close( s->lsd );
         s->lsd = 0;
@@ -264,5 +269,5 @@ sock_struct_t *msg_sock_hdlr_send( sock_struct_t *sock_struct,
 }
 #endif
 
-#endif  /* SRC_MSGSOCKHDLR_H_ */
+#endif  /* SRC_MSG_SOCK_HDLR_H_ */
 

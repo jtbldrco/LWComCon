@@ -22,7 +22,7 @@ CXX = g++
 CFLAGS += -I../iway_logger/
 CFLAGS += -g -O0 -fPIC
 
-CXXFLAGS += -std=c++0x
+CXXFLAGS += $(CFLAGS) -std=c++0x
 
 LIB_DIR=.
 
@@ -48,14 +48,14 @@ $(FULL_LIB_NAME_A):	$(LIB_OBJS)
 $(FULL_LIB_NAME_SO):	$(LIB_OBJS)
 	$(CC) -shared -o $(LIB_DIR)/$@ $<
 
-$(TEST_PROG1):	$(TEST_PROG1_OBJS)
-	$(CXX) -o $@ $^ -Wl,-rpath,$(LIB_DIR) -L$(LIB_DIR) -l $(LIB_NAME) $(PN_LDFLAGS)
+$(TEST_PROG1):	$(TEST_PROG1_OBJS) msg_sock_hdlr.h
+	$(CXX) -o $@ $^ -Wl,-rpath,$(LIB_DIR) -L$(LIB_DIR) -l$(LIB_NAME) $(PN_LDFLAGS)
 
-$(TEST_PROG2):	$(TEST_PROG2_OBJS)
-	$(CXX) -o $@ $^ -Wl,-rpath,$(LIB_DIR) -L$(LIB_DIR) -l $(LIB_NAME) $(PN_LDFLAGS)
+$(TEST_PROG2):	$(TEST_PROG2_OBJS) msg_sock_hdlr.h
+	$(CXX) -o $@ $^ -Wl,-rpath,$(LIB_DIR) -L$(LIB_DIR) -l$(LIB_NAME) $(PN_LDFLAGS)
 
 %.o:	$(PROJECT_ROOT)%.cpp $(PROJECT_ROOT)%.h
-	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
 
 %.o:	$(PROJECT_ROOT)%.c $(PROJECT_ROOT)%.h
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
