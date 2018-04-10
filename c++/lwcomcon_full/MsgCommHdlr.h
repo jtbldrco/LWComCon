@@ -26,7 +26,7 @@
  **************************************************************************/
 
 #include "ThreadedWorker.h"
-#include "ThreadSafeMsgPtrQueue.h"
+#include "ThreadSafePtrQueue.h"
 #include "msg_sock_hdlr.h"
 
 /**************************************************************************
@@ -79,7 +79,7 @@ private:
     const int _port;
 
     bool _threadRunning;
-    ThreadSafeMsgPtrQueue< std::string > _msgPtrQueue;
+    ThreadSafePtrQueue< std::string > _ptrQueue;
     MCH_Function _function;
 
     // Sends an enqueued std::string ptr and then deletes it

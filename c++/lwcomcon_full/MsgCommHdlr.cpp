@@ -36,7 +36,7 @@
 #define MAINLOOP_SEND_SLEEP_SECS 3
 
 static std::string twPreamble( "ThreadedWorker_of_" );
-static std::string mpqPreamble( "MsgPtrQueue_of_" );
+static std::string mpqPreamble( "PtrQueue_of_" );
 
 
 /**************************************************************************/
@@ -45,7 +45,7 @@ MsgCommHdlr::MsgCommHdlr( const std::string instanceName,
                           const std::string host, const int port,
                           const int connectTmo, const int readTmo ) :
     ThreadedWorker( instanceName ), _threadRunning( false ),
-    _function( function ), _msgPtrQueue( instanceName ), 
+    _function( function ), _ptrQueue( instanceName ), 
     _host( host ), _port( port ), _connectTimeout( connectTmo ),
     _readTimeout( readTmo ), _socketReadShutdownFlag( 0 )
 
@@ -254,7 +254,7 @@ sock_struct_t * MsgCommHdlr::doSenderSetup() {
                            
 
 /**************************************************************************
- * The semantics of the ThreadSafeMsgPtrQueue require that the object
+ * The semantics of the ThreadSafePtrQueue require that the object
  * that pops a pointer owns that pointer.  Therefore, if we pop a ptr we
  * will send it and then delete the pointed to string herein.
  */
@@ -267,7 +267,7 @@ sock_struct_t * MsgCommHdlr::doSendEnqueuedMessage( sock_struct_t * s ) {
 
     // We're a sender - any messages on the queue to send?
 
-    std::string* pMessage = _msgPtrQueue.deQueueElementPtr();
+    std::string* pMessage = _ptrQueue.deQueueElementPtr();
     if( pMessage == NULL ) {
         s->result = MSH_MESSAGE_NOT_SENT;
         return s;
@@ -287,7 +287,7 @@ sock_struct_t * MsgCommHdlr::doSendEnqueuedMessage( sock_struct_t * s ) {
     } else {
         // The message send operation reports failure.  Hmmm.  Let's
         // push that message BACK onto the queue for a later retry.
-        _msgPtrQueue.enQueueElementPtr( pMessage );
+        _ptrQueue.enQueueElementPtr( pMessage );
     } 
  
     return s;
@@ -307,8 +307,8 @@ sock_struct_t * MsgCommHdlr::doReceiverSetup() {
                            
 
 /**************************************************************************
- * The semantics of the ThreadSafeMsgPtrQueue require that the object that
- * pushes such a pointer onto the ThreadSafeMsgPtrQueue creates that ptr
+ * The semantics of the ThreadSafePtrQueue require that the object that
+ * pushes such a pointer onto the ThreadSafePtrQueue creates that ptr
  * as a pointer to heap memory so it can later be deleted safely - ie, NO
  * stack-frame objects' addresses pushed into queue.
  */
@@ -332,7 +332,7 @@ sock_struct_t *MsgCommHdlr::doRecvAndEnqueueMessage( sock_struct_t *s ) {
                             &_socketReadShutdownFlag, sendAck );
     if( s->result == MSH_MESSAGE_RECVD ) {
         std::string *newMessage = new std::string( _receiveBuf );
-        _msgPtrQueue.enQueueElementPtr( newMessage );
+        _ptrQueue.enQueueElementPtr( newMessage );
     }
     return s;
 
@@ -344,7 +344,7 @@ sock_struct_t *MsgCommHdlr::doRecvAndEnqueueMessage( sock_struct_t *s ) {
  * responsible for memory management of pointed to std::string
  */
 std::string* MsgCommHdlr::dequeueMessage() {
-    return _msgPtrQueue.deQueueElementPtr();
+    return _ptrQueue.deQueueElementPtr();
 
 } // End dequeueMessage()
 
@@ -354,7 +354,7 @@ std::string* MsgCommHdlr::dequeueMessage() {
  * String WILL BE DELETED when and if its content is sent over the network.
  */
 int MsgCommHdlr::enqueueMessage( std::string *msg ) {
-    _msgPtrQueue.enQueueElementPtr( msg );
+    _ptrQueue.enQueueElementPtr( msg );
 
 } // End enqueueMessage(...)
 
