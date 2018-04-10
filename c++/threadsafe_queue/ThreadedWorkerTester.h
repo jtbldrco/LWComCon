@@ -1,5 +1,5 @@
-#ifndef SRC_EXAMPLETHREADEDWORKER_H_
-#define SRC_EXAMPLETHREADEDWORKER_H_
+#ifndef SRC_THREADEDWORKERTESTER_H_
+#define SRC_THREADEDWORKERTESTER_H_
 
 /**************************************************************************
  * MIT License                                                            *
@@ -32,7 +32,8 @@
 
 /**********************************************************************
  * Test implementation of class derived from ThreadedWorker.
- * Used in ThreadSafeMsgPtrQueueTest.cpp to test and demo
+ * Used in ThreadSafeMsgPtrQueueTest.cpp and in
+ * Used in ThreadSafePtrQueueTest.cpp to test and demo
  * implementations.
  */
 class StringWithNoisyDestructor : public std::string {
@@ -43,6 +44,9 @@ public:
     }
 
 }; // End class StringWithNoisyDestructor
+
+
+enum TWT_TYPE { msgptr, rawptr };
 
 
 /*********************************************************************/
@@ -86,6 +90,8 @@ private:
     const int _enqueueCount;
     const int _dequeueCount;
 
+    TWT_TYPE _function;
+
 }; // End class ThreadedWorkerTester
 
-#endif /* SRC_EXAMPLETHREADEDWORKER_H_ */
+#endif /* SRC_THREADEDWORKERTESTER_H_ */

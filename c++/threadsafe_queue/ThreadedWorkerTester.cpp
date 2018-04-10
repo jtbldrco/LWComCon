@@ -40,6 +40,7 @@ ThreadedWorkerTester::ThreadedWorkerTester( std::string instanceName,
     _enqueueCount( enqueueCount ), _dequeueCount( dequeueCount ) 
 {
     _pMsgQueue = pQueue; 
+    _function = msgptr;
 }
 
 ThreadedWorkerTester::ThreadedWorkerTester( std::string instanceName,
@@ -49,6 +50,7 @@ ThreadedWorkerTester::ThreadedWorkerTester( std::string instanceName,
     _enqueueCount( enqueueCount ), _dequeueCount( dequeueCount ) 
 {
     _pQueue = pQueue; 
+    _function = rawptr;
 }
 
 ThreadedWorkerTester::~ThreadedWorkerTester() {}
@@ -173,7 +175,10 @@ void ThreadedWorkerTester::enqueue( const int msgCount, const int millisecSleep 
         printf( "Enqueuing this to msg queue: %s\n", (*pString).c_str() );
 #endif
 
-        _pMsgQueue->enQueueElementPtr( pString );
+        if( _function == msgptr ) 
+            _pMsgQueue->enQueueElementPtr( pString );
+        else
+            _pQueue->enQueueElementPtr( pString );
 
 #ifdef DEBUG_THREADEDWORKERTESTER_ADD_LONG_SLEEPS
         printf( "Enqueue now sleeping %d millis, on thread %s.\n", millisecSleep, MY_TID );
@@ -188,7 +193,12 @@ void ThreadedWorkerTester::enqueue( const int msgCount, const int millisecSleep 
 void ThreadedWorkerTester::dequeue( const int msgCount, const int millisecSleep ) {
 
     for( int i = 1; i < 1+msgCount; i++ ) {
-        StringWithNoisyDestructor * msg = _pMsgQueue->deQueueElementPtr();
+        StringWithNoisyDestructor * msg = NULL;
+        if( _function == msgptr )
+            msg = _pMsgQueue->deQueueElementPtr();
+        else
+            msg = _pQueue->deQueueElementPtr();
+
         if( msg == NULL ) {
             printf( "Dequeue msg NULL (collection presently empty), on thread %s.\n", MY_TID );
             break;
