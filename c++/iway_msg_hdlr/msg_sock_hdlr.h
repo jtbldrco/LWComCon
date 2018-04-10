@@ -58,8 +58,8 @@ extern "C" {
 
 // TODO - find a clever way to set the #defines AND
 //        these 'dump' strings in some wrapper marco
-char * MSH_DEFINE_NAME( const int value ) {
-
+static inline char * MSH_DEFINE_NAME( const int value )
+{
     switch ( value ) {
     case 0:
         return (char *)"MSH_VALUE_UNSET";
@@ -172,7 +172,7 @@ typedef struct sock_struct_t {
 } sock_struct_t;
 
 
-void sock_struct_dump( const sock_struct_t *s )
+static inline void sock_struct_dump( const sock_struct_t *s )
 {
     if( s == NULL ) return;
     if( s->host != NULL ) 
@@ -191,10 +191,10 @@ void sock_struct_dump( const sock_struct_t *s )
 
 // Function sock_struct_init_recv does not use, manage or delete memory
 // pointed to by host.  Caller is responsible for that memory.
-sock_struct_t *sock_struct_init_recv( const char *host,
-                                      const int port, 
-                                      const int lto,
-                                      const int cto )
+static inline sock_struct_t *sock_struct_init_recv( const char *host,
+                                                    const int port, 
+                                                    const int lto,
+                                                    const int cto )
 {
     sock_struct_t *s = (sock_struct_t*)malloc( sizeof(sock_struct_t) );
     memset( s, 0, sizeof(sock_struct_t) );
@@ -214,13 +214,15 @@ sock_struct_t *sock_struct_init_recv( const char *host,
     return s;
 } // End sock_struct_init_recv(...)
 
-sock_struct_t *sock_struct_init_send( const char *host,
-                                      const int port,
-                                      const int cto ) {
+static inline sock_struct_t *sock_struct_init_send( const char *host,
+                                                    const int port,
+                                                    const int cto )
+{
     return sock_struct_init_recv( host, port, 0, cto );
 } // End sock_struct_init_send()
     
-void sock_struct_close_client( sock_struct_t *s ) {
+static inline void sock_struct_close_client( sock_struct_t *s )
+{
     if( s->csd != 0 ) {
         close( s->csd );
         s->csd = 0;
@@ -229,7 +231,8 @@ void sock_struct_close_client( sock_struct_t *s ) {
 
 // 'With Time-Out' (_wto) form actually does two things - first, the server (listener) is
 // capable of listening for a client connection with periodic checks to see if there
-void sock_struct_destroy( sock_struct_t *s ) {
+static inline void sock_struct_destroy( sock_struct_t *s )
+{
     if( s == NULL ) return;
     if( s->lsd != 0 ) {
         close( s->lsd );
