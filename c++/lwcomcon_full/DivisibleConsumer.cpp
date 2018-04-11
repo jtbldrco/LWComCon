@@ -99,8 +99,12 @@ DivisibleConsumer::DivisibleConsumer(
 
 
 /**************************************************************************/
-DivisibleConsumer::~DivisibleConsumer()
-{} // End ~DivisibleConsumer()
+DivisibleConsumer::~DivisibleConsumer() {
+
+    delete _pSenderMch;
+    delete _pReceiverMch;
+
+} // End ~DivisibleConsumer()
 
 
 /**************************************************************************/

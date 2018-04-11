@@ -195,6 +195,26 @@ public:
 
 
     /***********************************************************************
+     */
+    int size() {
+
+#ifdef DEBUG_THREADSAFEPTRQUEUE
+        cout << "In " << __PRETTY_FUNCTION__ << " pre-mutex, on thread "
+             << MY_TID << endl;
+#endif
+
+        PtrQueueLock lock( _instanceName, _pPtrQueueMutex );
+
+#ifdef DEBUG_THREADSAFEPTRQUEUE
+        cout << "Post-mutex, returning size, on thread " << MY_TID << endl;
+#endif
+
+        return _ptrQueue.size();
+
+    } // End size()
+
+
+    /***********************************************************************
      * Caller is responsible for allocating the string on
      * the heap (operator new) before calling this method.
      */

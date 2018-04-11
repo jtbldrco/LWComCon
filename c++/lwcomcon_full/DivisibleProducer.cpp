@@ -123,8 +123,12 @@ DivisibleProducer::DivisibleProducer(
 
 
 /**************************************************************************/
-DivisibleProducer::~DivisibleProducer()
-{} // End ~DivisibleProducer()
+DivisibleProducer::~DivisibleProducer() {
+
+    delete _pSenderMch;
+    delete _pReceiverMch;
+
+} // End ~DivisibleProducer()
 
 
 /**************************************************************************/
