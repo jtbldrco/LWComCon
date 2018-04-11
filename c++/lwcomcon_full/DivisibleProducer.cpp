@@ -158,6 +158,18 @@ void DivisibleProducer::mainLoop() {
                   << " doing producer cycle" << ", on thread " << MY_TID << std::endl;
 #endif
 
+#ifdef DEBUG_DIVISIBLE_SLOWDOWN_1
+        std::cout << __PRETTY_FUNCTION__ << " slowing down " << _instanceName
+                  << " 1000 msec" << ", on thread " << MY_TID << std::endl;
+        ThreadedWorker::threadSleep( 1000 );
+#endif
+
+#ifdef DEBUG_DIVISIBLE_SLOWDOWN_3
+        std::cout << __PRETTY_FUNCTION__ << " slowing down " << _instanceName
+                  << " 3000 msec" << ", on thread " << MY_TID << std::endl;
+        ThreadedWorker::threadSleep( 3000 );
+#endif
+
         // Do a new producer cycle
         doProducerThing();
 
