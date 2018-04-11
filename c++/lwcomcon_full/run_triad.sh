@@ -15,7 +15,7 @@ function show_usage() {
     echo "    usage: ./run_triad.sh <triad_piece>"
     echo "example 1: ./run_triad.sh lwcc"
     echo "example 2: ./run_triad.sh prod"
-    echo "example 1: ./run_triad.sh con"
+    echo "example 3: ./run_triad.sh con"
 
 }
 
@@ -31,7 +31,7 @@ PROD_PORT=16274
 CON_HOST=localhost
 CON_PORT=16275
 
-if [ "$!" == "lwcc" ] ; then
+if [ "$1" == "lwcc" ] ; then
 
     #  usage: ./LWComCon <listener_host_ifc> <listener_host_port>
     #                    <producer_host_ifc> <producer_host_port>
@@ -42,7 +42,7 @@ if [ "$!" == "lwcc" ] ; then
     exit 0
 fi
 
-if [ "$!" == "prod" ] ; then
+if [ "$1" == "prod" ] ; then
 
     #  usage: ./DivisibleProducer <listener_host_ifc> <listener_host_port>
     #                             <consumer_host_ifc> <consumer_host_port>
@@ -52,7 +52,7 @@ if [ "$!" == "prod" ] ; then
     exit 0
 fi
 
-if [ "$!" == "con" ] ; then
+if [ "$1" == "con" ] ; then
 
     #  usage: ./DivisibleConsumer <listener_host_ifc> <listener_host_port>
     #                             <com-con_host_ifc> <com-con_host_port>
