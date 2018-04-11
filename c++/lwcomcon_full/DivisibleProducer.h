@@ -50,8 +50,9 @@ protected:
 
 private:
 
-    MsgCommHdlr _senderMch;
-    MsgCommHdlr _receiverMch;
+    std::string _instanceName; 
+    MsgCommHdlr *_pSenderMch;
+    MsgCommHdlr *_pReceiverMch;
 
     void mainLoop();
 

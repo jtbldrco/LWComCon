@@ -33,20 +33,29 @@
 
 void showUsage() {
     std::cout << "  usage: ./DivisibleProducer <listener_host_ifc> <listener_host_port>" << std::endl
-              << "                             <control_host_ifc> <control_host_port>"   << std::endl;
+              << "                             <consumer_host_ifc> <consumer_host_port>"   << std::endl;
 
 }
 
-int main( int argc, char *argv[] ) {
+int main( const int argc, const char *argv[] ) {
 
     if( argc < 5 ) {
         showUsage();
         return 1;
     }
 
-    DivisibleProducer dc( "DivPro", argv[1], atoi( argv[2] ),
-                                    argv[3], atoi( argv[4] ),
+    int listenerPort = atoi( argv[2] );
+    int consumerPort = atoi( argv[4] );
+
+#ifdef DEBUG_DIVISIBLE
+    printf( "About to create dc.\n" );
+#endif
+    DivisibleProducer dc( "DivPro", argv[1], listenerPort,
+                                    argv[3], consumerPort,
                                     10, 10 );
+#ifdef DEBUG_DIVISIBLE
+    printf( "About to call dc.go().\n" );
+#endif
     dc.go();
 
     return 0;
@@ -70,15 +79,20 @@ DivisibleProducer::DivisibleProducer(
     const char * lhost, const int lport,
     const char * chost, const int cport,
     const int connectTmo, const int readTmo ) :
+    _instanceName( instanceName ),
     _lhost( lhost ), _lport( lport ),
-    _chost( chost ), _cport( cport ),
-    _senderMch( std::string( "SenderFor" ) + std::string( instanceName ),
-                MCH_Function::sender,
-                _chost, _cport, connectTmo, readTmo ),
-    _receiverMch( std::string( "ReceiverFor" ) + std::string( instanceName ),
-                  MCH_Function::receiver,
-                  _lhost, _lport, connectTmo, readTmo )
+    _chost( chost ), _cport( cport )
 {
+
+#ifdef DEBUG_DIVISIBLE
+    printf( "Entered DivisibleProducer::DivisibleProducer(...).\n" );
+#endif
+
+    _pSenderMch = new MsgCommHdlr(  std::string( "SenderFor" ) + std::string( instanceName ),
+                                  MCH_Function::sender, _chost, _cport, connectTmo, readTmo );
+    _pReceiverMch = new MsgCommHdlr( std::string( "ReceiverFor" ) + std::string( instanceName ),
+                                     MCH_Function::receiver, _lhost, _lport, connectTmo, readTmo );
+
     char logName[128] = { 0 };
     strcpy( logName, "DivisibleProducer." );
     strcat( logName, instanceName );
@@ -92,13 +106,18 @@ DivisibleProducer::DivisibleProducer(
     // and responding to receiver messages.  Let's get them constructed
     // and running.
 
-    _senderMch.go();
-    _receiverMch.go();
+#ifdef DEBUG_DIVISIBLE
+    printf( "Starting MsgCommHdlr instances.\n" );
+#endif
+
+
+    _pSenderMch->go();
+    _pReceiverMch->go();
 
     // Important thread management - wait until the
     // MsgCommHdlr objects terminate and return
-    _senderMch.join();
-    _receiverMch.join();
+    _pSenderMch->join();
+    _pReceiverMch->join();
 
 } // End DivisibleProducer(...)
 
@@ -131,7 +150,7 @@ void DivisibleProducer::mainLoop() {
     while( true ) {
 
 #ifdef DEBUG_DIVISIBLE
-        std::cout << __PRETTY_FUNCTION__ << " object " << getInstanceName()
+        std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
                   << " doing producer cycle" << ", on thread " << MY_TID << std::endl;
 #endif
 
@@ -141,16 +160,16 @@ void DivisibleProducer::mainLoop() {
         // Next, read from receiver (for shutdown msg)
 
 #ifdef DEBUG_DIVISIBLE
-        std::cout << __PRETTY_FUNCTION__ << " object " << getInstanceName()
+        std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
                   << " checking for shutdown signal" << ", on thread " << MY_TID << std::endl;
 #endif
 
-        std::string *pMessage = _receiverMch.dequeueMessage();
+        std::string *pMessage = _pReceiverMch->dequeueMessage();
         if( NULL != pMessage ) {
             if( pMessage->compare( GMR_SHUTDOWN ) == 0 ) {
                 // Shutdown has been signaled
-                _senderMch.signalShutdown( true );
-                _receiverMch.signalShutdown( true );
+                _pSenderMch->signalShutdown( true );
+                _pReceiverMch->signalShutdown( true );
             } else {
                 strcpy( logMsg, "Received unrecognized command: " );
                 strcat( logMsg, pMessage->c_str() );
@@ -178,6 +197,6 @@ void DivisibleProducer::doProducerThing() {
     // other end.
     std::string *pString = new std::string( GMR_PRODUCER +
                                             std::to_string( genResult ) );
-    _senderMch.enqueueMessage( pString );
+    _pSenderMch->enqueueMessage( pString );
 
 } // End doProducerThing()

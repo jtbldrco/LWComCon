@@ -64,13 +64,18 @@ DivisibleConsumer::DivisibleConsumer(
     const char * lhost, const int lport,
     const char * chost, const int cport,
     const int connectTmo, const int readTmo ) :
+    _instanceName( instanceName ),
     _lhost( lhost ), _lport( lport ),
-    _chost( chost ), _cport( cport ),
-    _senderMch( std::string( "SenderFor" ) + std::string( instanceName ),
-                MCH_Function::sender, _chost, _cport, connectTmo, readTmo ),
-    _receiverMch( std::string( "ReceiverFor" ) + std::string( instanceName ),
-                  MCH_Function::receiver, _lhost, _lport, connectTmo, readTmo )
+    _chost( chost ), _cport( cport )
 {
+
+    _pSenderMch = new MsgCommHdlr( std::string( "SenderFor" ) + std::string( instanceName ),
+                                   MCH_Function::sender, _chost, _cport,
+                                   connectTmo, readTmo );
+    _pReceiverMch = new MsgCommHdlr( std::string( "ReceiverFor" ) + std::string( instanceName ),
+                                     MCH_Function::receiver, _lhost, _lport,
+                                     connectTmo, readTmo );
+
     char logName[128] = { 0 };
     strcpy( logName, "DivisibleConsumer." );
     strcat( logName, instanceName );
@@ -82,13 +87,13 @@ DivisibleConsumer::DivisibleConsumer(
     // and responding to receiver messages.  Let's get them constructed
     // and running.
 
-    _senderMch.go();
-    _receiverMch.go();
+    _pSenderMch->go();
+    _pReceiverMch->go();
 
     // Important thread management - wait until the
     // MsgCommHdlr objects terminate and return
-    _senderMch.join();
-    _receiverMch.join();
+    _pSenderMch->join();
+    _pReceiverMch->join();
 
 } // End DivisibleConsumer(...)
 
@@ -122,7 +127,7 @@ void DivisibleConsumer::mainLoop() {
     while( true ) {
 
 #ifdef DEBUG_DIVISIBLE
-        std::cout << __PRETTY_FUNCTION__ << " object " << getInstanceName()
+        std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
                   << " doing consumer cycle" << ", on thread " << MY_TID << std::endl;
 #endif
 
@@ -132,16 +137,16 @@ void DivisibleConsumer::mainLoop() {
         // Next, read from receiver (for shutdown msg)
 
 #ifdef DEBUG_DIVISIBLE
-        std::cout << __PRETTY_FUNCTION__ << " object " << getInstanceName()
+        std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
                   << " checking for shutdown signal" << ", on thread " << MY_TID << std::endl;
 #endif
 
-        pMessage = _receiverMch.dequeueMessage();
+        pMessage = _pReceiverMch->dequeueMessage();
         if( NULL != pMessage ) {
             if( pMessage->compare( GMR_SHUTDOWN ) == 0 ) {
                 // Shutdown has been signaled
-                _senderMch.signalShutdown( true );
-                _receiverMch.signalShutdown( true );
+                _pSenderMch->signalShutdown( true );
+                _pReceiverMch->signalShutdown( true );
             } else {
                 strcpy( logMsg, "Received unrecognized command: " );
                 strcat( logMsg, pMessage->c_str() );
@@ -165,7 +170,7 @@ void DivisibleConsumer::doConsumerThing()
     char results[256] = { 0 };
     char logMsg[128] = { 0 };
 
-    std::string *pString = _receiverMch.dequeueMessage();
+    std::string *pString = _pReceiverMch->dequeueMessage();
     if( pString != NULL ) {
         if( pString->compare( GMR_PRODUCER ) == 0 ) {
             // Got a good message from the producer side - 
