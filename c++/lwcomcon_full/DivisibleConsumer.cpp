@@ -33,7 +33,7 @@
 
 void showUsage() {
     std::cout << "  usage: ./DivisibleConsumer <listener_host_ifc> <listener_host_port>" << std::endl
-              << "                             <consumer_host_ifc> <consumer_host_port>" << std::endl;
+              << "                             <com-con_host_ifc> <com-con_host_port>" << std::endl;
 }
 
 int main( int argc, char *argv[] ) {

@@ -6,17 +6,21 @@ FULL_LIB_NAME_SO = lib$(LIB_NAME).so
 
 MSG_HDLR_LIB_DIR = ../iway_msg_hdlr
 
-MAIN_PROG = LWComConFull
+MAIN_PROG1 = LWComConFull
+MAIN_PROG2 = DivisibleConsumer
+MAIN_PROG3 = DivisibleProducer
 
 TEST_PROG1 = MsgCommHdlrTestSender
 TEST_PROG2 = MsgCommHdlrTestReceiver
 
-PROGRAMNAMES = $(MAIN_PROG) $(TEST_PROG1) $(TEST_PROG2)
+PROGRAMNAMES = $(MAIN_PROG1) $(MAIN_PROG2) $(MAIN_PROG3)  $(TEST_PROG1) $(TEST_PROG2)
 
 ## TODO - create library of ThreadedWorker and ThreadMapper, then access that
 ## from here; add include paths to pick up the headers for those classes
 
-MAIN_PROG_OBJS = LWComConFull.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o DivisibleConsumer.o DivisibleProducer.o
+MAIN_PROG1_OBJS = LWComConFull.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
+MAIN_PROG2_OBJS = DivisibleConsumer.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
+MAIN_PROG3_OBJS = DivisibleProducer.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
 
 TEST_PROG1_OBJS = MsgCommHdlrTestSender.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
 TEST_PROG2_OBJS = MsgCommHdlrTestReceiver.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
@@ -57,7 +61,13 @@ PN_LDFLAGS = -L/usr/lib/x86_64-linux-gnu \
 
 all:	$(PROGRAMNAMES)
 
-$(MAIN_PROG):	$(MAIN_PROG_OBJS)
+$(MAIN_PROG1):	$(MAIN_PROG1_OBJS)
+	$(CXX) -o $@ $^ $(PN_LDFLAGS)
+
+$(MAIN_PROG2):	$(MAIN_PROG2_OBJS)
+	$(CXX) -o $@ $^ $(PN_LDFLAGS)
+
+$(MAIN_PROG3):	$(MAIN_PROG3_OBJS)
 	$(CXX) -o $@ $^ $(PN_LDFLAGS)
 
 $(TEST_PROG1):	$(TEST_PROG1_OBJS)
@@ -73,5 +83,5 @@ $(TEST_PROG2):	$(TEST_PROG2_OBJS)
 	$(CXX) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 clean:
-	rm -fr $(PROGRAMNAMES) $(MAIN_PROG) $(TEST_PROG1_OBJS) $(TEST_PROG2_OBJS)
+	rm -fr $(PROGRAMNAMES) $(MAIN_PROG1) $(MAIN_PROG2) $(MAIN_PROG3) $(TEST_PROG1_OBJS) $(TEST_PROG2_OBJS)
 

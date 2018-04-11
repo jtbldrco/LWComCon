@@ -75,16 +75,12 @@ int main( int argc, char *argv[] ) {
         return 1;
     }
 
-    std::string* pString1 = new std::string( send_msg );
+    std::string *pString1 = new std::string( send_msg );
 
-    cout << "MsgCommHdlrTestSender ready to send message - enqueuing ...\n" << *pString1 << std::endl;
+    cout << "MsgCommHdlrTestSender ready to send message - enqueuing ... \n" << *pString1 << std::endl;
 
-    int sendResult = msgCommHdlrSender.enqueueMessage( pString1 );    
+    msgCommHdlrSender.enqueueMessage( pString1 );    
     
-    std::cout << "Send result: " << sendResult << std::endl
-              << ".  Exiting." << std::endl;
-  
-
 //    std::cout << "\nSleeping main thread for 5 seconds.\n" << std::endl;
 //    std::this_thread::sleep_for( std::chrono::milliseconds( 5000 ) );
 

@@ -34,9 +34,9 @@
  */
 
 void showUsage() {
-    std::cout << "  usage: ../LWComCon <listener_host_ifc> <listener_host_port>" << std::endl
-              << "                     <producer_host_ifc> <producer_host_port>" << std::endl
-              << "                     <consumer_host_ifc> <consumer_host_port>" << std::endl;
+    std::cout << "  usage: ./LWComCon <listener_host_ifc> <listener_host_port>" << std::endl
+              << "                    <producer_host_ifc> <producer_host_port>" << std::endl
+              << "                    <consumer_host_ifc> <consumer_host_port>" << std::endl;
 }
 
 int main( int argc, char *argv[] ) {
