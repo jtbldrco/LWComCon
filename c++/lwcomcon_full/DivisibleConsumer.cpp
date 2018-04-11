@@ -32,13 +32,14 @@
 
 
 void showUsage() {
-    std::cout << "  usage: ./DivisibleConsumer <listener_host_ifc> <listener_host_port>" << std::endl
-              << "                             <com-con_host_ifc> <com-con_host_port>" << std::endl;
+    std::cout << "usage: ./DivisibleConsumer <lwcc_list_host_ifc> <lwcc_list_host_port>" << std::endl
+              << "                           <cons_list_host_ifc> <cons_list_host_port>" << std::endl
+              << "(both ports are listeners)" << std::endl;
 }
 
 int main( int argc, char *argv[] ) {
 
-    if( argc < 5 ) {
+    if( argc != 5 ) {
         showUsage();
         return 1;
     }
@@ -53,7 +54,9 @@ int main( int argc, char *argv[] ) {
 
 
 
-#define MAINLOOP_SEND_SLEEP_SECS 1
+#define MAINLOOP_SLEEP_MSECS 2500
+#define LOG_MSG_BUFFER_LEN 256
+#define CONSUMER_RESULTS_BUFFER_LEN 256
 
 /**************************************************************************
  * DivisibleConsumer implementation contains MsgCommHdlr's for
@@ -61,39 +64,31 @@ int main( int argc, char *argv[] ) {
  */
 DivisibleConsumer::DivisibleConsumer(
     const char * instanceName,
-    const char * lhost, const int lport,
-    const char * chost, const int cport,
+    const char * lwcchost, const int lwccport,
+    const char * clhost, const int clport,
     const int connectTmo, const int readTmo ) :
     _instanceName( instanceName ),
-    _lhost( lhost ), _lport( lport ),
-    _chost( chost ), _cport( cport )
+    _lwcchost( lwcchost ), _lwccport( lwccport ),
+    _clhost( clhost ), _clport( clport )
 {
 
-    _pSenderMch = new MsgCommHdlr( std::string( "SenderFor" ) + std::string( instanceName ),
-                                   MCH_Function::sender, _chost, _cport,
-                                   connectTmo, readTmo );
-    _pReceiverMch = new MsgCommHdlr( std::string( "ReceiverFor" ) + std::string( instanceName ),
-                                     MCH_Function::receiver, _lhost, _lport,
-                                     connectTmo, readTmo );
+    // Two MsgCommHdlr objects will be used to deal with incoming message
+    // traffic.  DivisibleConsumer will interact with its message queue responding
+    // to receiver messages.  Let's get them constructed and then, in go(),
+    // running.
+
+    _pLwccReceiverMch = new MsgCommHdlr( std::string( "LwccRecvrFor" ) + std::string( instanceName ),
+                                         MCH_Function::receiver, _lwcchost, _lwccport,
+                                         connectTmo, readTmo );
+
+    _pConsReceiverMch = new MsgCommHdlr( std::string( "ConsRecvrFor" ) + std::string( instanceName ),
+                                         MCH_Function::receiver, _clhost, _clport,
+                                         connectTmo, readTmo );
 
     char logName[128] = { 0 };
     strcpy( logName, "DivisibleConsumer." );
     strcat( logName, instanceName );
     IWAY_LOG_SET_PROG_NAME( logName );
-
-    // Two MsgCommHdlr objects will deal with all incoming and outgoing
-    // message traffic.  DivisibleConsumer will interact with each of their
-    // message queues pushing out messages to the sender and retreiving
-    // and responding to receiver messages.  Let's get them constructed
-    // and running.
-
-    _pSenderMch->go();
-    _pReceiverMch->go();
-
-    // Important thread management - wait until the
-    // MsgCommHdlr objects terminate and return
-    _pSenderMch->join();
-    _pReceiverMch->join();
 
 } // End DivisibleConsumer(...)
 
@@ -101,8 +96,8 @@ DivisibleConsumer::DivisibleConsumer(
 /**************************************************************************/
 DivisibleConsumer::~DivisibleConsumer() {
 
-    delete _pSenderMch;
-    delete _pReceiverMch;
+    delete _pLwccReceiverMch;
+    delete _pConsReceiverMch;
 
 } // End ~DivisibleConsumer()
 
@@ -110,7 +105,15 @@ DivisibleConsumer::~DivisibleConsumer() {
 /**************************************************************************/
 void DivisibleConsumer::go() {
 
+    _pLwccReceiverMch->go();
+    _pConsReceiverMch->go();
+
     mainLoop();
+
+    // Important thread management - wait until the
+    // MsgCommHdlr objects terminate and return
+    _pLwccReceiverMch->join();
+    _pConsReceiverMch->join();
 
 } // End go()
 
@@ -126,54 +129,63 @@ void DivisibleConsumer::mainLoop() {
     // Do some work here that must happen 'atomically' and
     // then, check to see if we've been directed to wrap it up.
 
-    char logMsg[128] = { 0 };
+    char logMsg[LOG_MSG_BUFFER_LEN] = { 0 };
     std::string *pMessage = NULL;
+
     while( true ) {
 
-#ifdef DEBUG_DIVISIBLE
-        std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
-                  << " doing consumer cycle" << ", on thread " << MY_TID << std::endl;
-#endif
-
-#ifdef DEBUG_DIVISIBLE_SLOWDOWN_1
+#ifdef DEBUG_DIVISIBLE_SLOWDOWN_1000
         std::cout << __PRETTY_FUNCTION__ << " slowing down " << _instanceName
                   << " 1000 msec" << ", on thread " << MY_TID << std::endl;
         ThreadedWorker::threadSleep( 1000 );
 #endif
 
-#ifdef DEBUG_DIVISIBLE_SLOWDOWN_3
+#ifdef DEBUG_DIVISIBLE_SLOWDOWN_3000
         std::cout << __PRETTY_FUNCTION__ << " slowing down " << _instanceName
                   << " 3000 msec" << ", on thread " << MY_TID << std::endl;
         ThreadedWorker::threadSleep( 3000 );
 #endif
+ 
+#ifdef DEBUG_DIVISIBLE
+        std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
+                  << " doing consumer cycle" << ", on thread " << MY_TID << std::endl;
+#endif
 
-        // Do a new consumer cycle
+        // This reads from the Producer input flow -
         doConsumerThing();
 
-        // Next, read from receiver (for shutdown msg)
+        // Read from receiver for shutdown msg
 
 #ifdef DEBUG_DIVISIBLE
         std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
-                  << " checking for shutdown signal" << ", on thread " << MY_TID << std::endl;
+                  << " check for lwcc shutdown msg" << ", on thread " << MY_TID << std::endl;
 #endif
 
-        pMessage = _pReceiverMch->dequeueMessage();
+        pMessage = _pLwccReceiverMch->dequeueMessage();
         if( NULL != pMessage ) {
-            if( pMessage->compare( GMR_SHUTDOWN ) == 0 ) {
-                // Shutdown has been signaled
-                _pSenderMch->signalShutdown( true );
-                _pReceiverMch->signalShutdown( true );
-            } else {
-                strcpy( logMsg, "Received unrecognized command: " );
-                strcat( logMsg, pMessage->c_str() );
-                IWAY_LOG( IWAY_LOG_INFO, logMsg );
 
+            // We got a message from the receiver thread
+
+            if( pMessage->compare( GMR_SHUTDOWN ) == 0 ) {
+
+#ifdef DEBUG_DIVISIBLE
+                std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
+                          << " received shutdown msg" << ", on thread "
+                          << MY_TID << std::endl;
+#endif
+
+                // Shutdown has been signaled
+                _pLwccReceiverMch->signalShutdown( true );
+                _pConsReceiverMch->signalShutdown( true );
             }
+
+            // the queue, you are responsible for its memory -
             delete pMessage;
+
         }
 
         // Slow this loop down just a bit!
-        ThreadedWorker::threadSleep( MAINLOOP_SEND_SLEEP_SECS );
+        ThreadedWorker::threadSleep( MAINLOOP_SLEEP_MSECS );
 
     } // End while( true )
 
@@ -183,29 +195,34 @@ void DivisibleConsumer::mainLoop() {
 /**************************************************************************/
 void DivisibleConsumer::doConsumerThing()
 {
-    char results[256] = { 0 };
-    char logMsg[128] = { 0 };
+    char results[CONSUMER_RESULTS_BUFFER_LEN] = { 0 };
+    char logMsg[LOG_MSG_BUFFER_LEN] = { 0 };
 
-    std::string *pString = _pReceiverMch->dequeueMessage();
+    std::string *pString = _pConsReceiverMch->dequeueMessage();
     if( pString != NULL ) {
-        if( pString->compare( GMR_PRODUCER ) == 0 ) {
+        if( pString->find( GMR_PRODUCER ) != std::string::npos ) {
             // Got a good message from the producer side - 
             // consume it!
 
 
-//TODO Strip out number... for now ...
+//TODO Strip out number... but, for now ...
             int number = 55000;
             do_compilation( number, results );
+
+#ifdef DEBUG_DIVISIBLE
+            std::cout << "*** CONSUMER RESULTS *** *** CONSUMER RESULTS *** *** CONSUMER RESULTS *** " << std::endl;
+            std::cout << __PRETTY_FUNCTION__ << " on thread " << MY_TID
+                      << ", new consumer result: \n" << results << std::endl;
+#endif
+
         } else {
             strcpy( logMsg, "Received unrecognized command: " );
             strcat( logMsg, pString->c_str() );
             IWAY_LOG( IWAY_LOG_INFO, logMsg );
-
         }
+
         delete pString;
     }
-
-
 
 
 } // End doConsumeThing()

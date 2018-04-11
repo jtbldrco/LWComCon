@@ -35,8 +35,8 @@ class DivisibleConsumer {
 
 public:
     DivisibleConsumer( const char * instanceName,
-                       const char * lhost, const int lport,
-                       const char * chost, const int cport,
+                       const char * lwcchost, const int lwccport,
+                       const char * clhost, const int clport,
                        const int connectTmo, const int readTmo );
 
     // 'virtual' destructor is important for native
@@ -50,16 +50,16 @@ protected:
 private:
 
     std::string _instanceName; 
-    MsgCommHdlr *_pSenderMch;
-    MsgCommHdlr *_pReceiverMch;
+    MsgCommHdlr *_pLwccReceiverMch;
+    MsgCommHdlr *_pConsReceiverMch;
 
     void mainLoop();
     void doConsumerThing();
 
-    std::string _lhost;
-    int _lport;
-    std::string _chost;
-    int _cport;
+    std::string _lwcchost;
+    int _lwccport;
+    std::string _clhost;
+    int _clport;
 
 };
 

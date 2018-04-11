@@ -24,41 +24,59 @@ if [ $# -ne 1 ] ; then
     exit 1
 fi
 
+# LWComCon listener
 LW_HOST=localhost
 LW_PORT=16273
-PROD_HOST=localhost
-PROD_PORT=16274
-CON_HOST=localhost
-CON_PORT=16275
+
+# Producer listener (from LWComCon)
+# - LWComCon opens sender to this port, 
+# - Producer opens receiver on this port.
+PROD_L_HOST=localhost
+PROD_L_PORT=16274
+
+# Consumer listener (from LWComCon)
+# - LWComCon opens sender to this port, 
+# - Consumer opens receiver on this port.
+CON_L_HOST=localhost
+CON_L_PORT=16275
+
+# Consumer listener (from Producer)
+# - LWComCon opens sender to this port, 
+# - Consumer opens receiver on this port.
+CON_P_HOST=localhost
+CON_P_PORT=16276
 
 if [ "$1" == "lwcc" ] ; then
 
-    #  usage: ./LWComCon <listener_host_ifc> <listener_host_port>
-    #                    <producer_host_ifc> <producer_host_port>
-    #                    <consumer_host_ifc> <consumer_host_port>
+    # LWComCon has a receiver and two sender msg hdlrs - 
+    # usage: ./LWComCon <listener_host_ifc> <listener_host_port>
+    #                   <producer_host_ifc> <producer_host_port>
+    #                   <consumer_host_ifc> <consumer_host_port>
 
-    # 'Push to backgroud' allows shell access
-    ./LWComConFull $LW_HOST $LW_PORT $PROD_HOST $PROD_PORT $CON_HOST $CON_PORT  &
+    # 'Push to background' allows shell access
+    ./LWComConFull $LW_HOST $LW_PORT $PROD_L_HOST $PROD_L_PORT $CON_L_HOST $CON_L_PORT  &
     exit 0
 fi
 
 if [ "$1" == "prod" ] ; then
 
-    #  usage: ./DivisibleProducer <listener_host_ifc> <listener_host_port>
-    #                             <consumer_host_ifc> <consumer_host_port>
+    # DivProd has a receiver (from lwcc), and a sender (to con) msg hdlr - 
+    # usage: ./DivisibleProducer <listener_host_ifc> <listener_host_port>
+    #                            <consumer_dest_host_ifc> <consumer_dest_host_port>
 
     # 'Push to backgroud' allows shell access
-    ./DivisibleProducer $PROD_HOST $PROD_PORT $CON_HOST $CON_PORT  &
+    ./DivisibleProducer $PROD_L_HOST $PROD_L_PORT $CON_P_HOST $CON_P_PORT  &
     exit 0
 fi
 
 if [ "$1" == "con" ] ; then
 
-    #  usage: ./DivisibleConsumer <listener_host_ifc> <listener_host_port>
-    #                             <com-con_host_ifc> <com-con_host_port>
+    # DivCon has a receiver (from lwcc), and a receiver (from prod) msg hdlr - 
+    # usage: ./DivisibleConsumer <lwcc_host_list_ifc> <lwcc_host_list_port>
+    #                            <cons_list_host_ifc> <cons_list_host_port>
 
     # 'Push to backgroud' allows shell access
-    ./DivisibleConsumer $CON_HOST $CON_PORT $LW_HOST $LW_PORT  &
+    ./DivisibleConsumer $CON_L_HOST $CON_L_PORT $CON_P_HOST $CON_P_PORT  &
     exit 0
 fi
 

@@ -230,18 +230,20 @@ void ThreadedWorker::join() {
     // check if it's null and then (if not) call join on it.
     // Ie, can't do this:
     //     if ( _pThread != NULL ) _pThread->join();
-    // So, what's the scenario?  The 'has-a' is done and
-    // needs the is-a to wrap it up, but in a mutexed way.
-    // Method doShutdown() will handle that as it's already
-    // set up to be redundantly called (from many threads)
-    // AND it's the one that actually joins on the internal
-    // worker thread.  Net-net - this is simple:
+    // So, what's the scenario?  The 'has-a' needs a reliable
+    // way to wait on the work here getting done (years away?)
+    // Method doShutdown() is wrong.  So we call our
+    // derived class method again (like in startWorker())
+    // The if-test is to be sure we handle the mistaken usage
+    // of calling join before starting the thread!
+    // Net-net - this is simple:
 
 #ifdef DEBUG_THREADEDWORKER
     std::cout << "Entered " << __PRETTY_FUNCTION__ << ", object " << _instanceName
               << ", on thread " << MY_TID << std::endl;
 #endif
-
-    doShutdown();
+    if( isThreadRunning() ) {
+         _pThread->join();
+    }
 
 } // End join()

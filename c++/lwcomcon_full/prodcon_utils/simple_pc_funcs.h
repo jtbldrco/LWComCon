@@ -20,38 +20,38 @@ char * do_compilation( unsigned int number, char result[] );
 //
 int do_rand_gen( int base, int lower_incr, int upper_incr )
 {
-#ifdef DEBUG
+#ifdef DEBUG_PC_FUNCS_DO_RAND_GEN
     printf( "Args: %d, %d, %d\n", base, lower_incr, upper_incr );
 #endif
  
     if( ! (upper_incr > lower_incr) ) return base;
 
-#ifdef DEBUG
+#ifdef DEBUG_PC_FUNCS_DO_RAND_GEN
     printf( "Random number range: 0 to %d\n", RAND_MAX );
 #endif
  
     srand( time(0) );
     int rval = rand();
  
-#ifdef DEBUG
+#ifdef DEBUG_PC_FUNCS_DO_RAND_GEN
     printf( "Random value: %d\n", rval );
 #endif
 
     float ratio = (float)rval / (float)RAND_MAX;
 
-#ifdef DEBUG
+#ifdef DEBUG_PC_FUNCS_DO_RAND_GEN
     printf( "Computed ratio: %f\n", ratio );
 #endif
 
     float fincr = ( (float)( upper_incr - lower_incr) + 0.5 );
 
-#ifdef DEBUG
+#ifdef DEBUG_PC_FUNCS_DO_RAND_GEN
     printf( "Computed fincr: %f\n", fincr );
 #endif
 
     int rand_incr = ( (int)( fincr * ratio ) ) + lower_incr;
 
-#ifdef DEBUG
+#ifdef DEBUG_PC_FUNCS_DO_RAND_GEN
     printf( "Computed incr: %d\n", rand_incr );
 #endif
 
@@ -82,7 +82,7 @@ char * do_compilation( unsigned int number, char result[] )
             }
         }
 
-#ifdef DEBUG
+#ifdef DEBUG_PC_FUNCS_DO_COMPILATION
         printf( "Finding: The constant %d is evenly divided by %d different values.\n",
                 (J-1), even_divisibles );
 #endif

@@ -33,13 +33,13 @@
 
 void showUsage() {
     std::cout << "  usage: ./DivisibleProducer <listener_host_ifc> <listener_host_port>" << std::endl
-              << "                             <consumer_host_ifc> <consumer_host_port>"   << std::endl;
+              << "                             <consumer_host_ifc> <consumer_host_port>" << std::endl;
 
 }
 
 int main( const int argc, const char *argv[] ) {
 
-    if( argc < 5 ) {
+    if( argc != 5 ) {
         showUsage();
         return 1;
     }
@@ -62,7 +62,10 @@ int main( const int argc, const char *argv[] ) {
 } // End main(...)
 
 
-#define MAINLOOP_SEND_SLEEP_SECS 1
+#define MAINLOOP_SLEEP_MSECS 2500
+#define LOG_MSG_BUFFER_LEN 256
+#define CONSUMER_RESULTS_BUFFER_LEN 256
+
 
 // These values result in generated random numbers of
 // [50000..100000].  See doProducerThing().
@@ -88,10 +91,16 @@ DivisibleProducer::DivisibleProducer(
     printf( "Entered DivisibleProducer::DivisibleProducer(...).\n" );
 #endif
 
-    _pSenderMch = new MsgCommHdlr(  std::string( "SenderFor" ) + std::string( instanceName ),
-                                  MCH_Function::sender, _chost, _cport, connectTmo, readTmo );
-    _pReceiverMch = new MsgCommHdlr( std::string( "ReceiverFor" ) + std::string( instanceName ),
+    // Two MsgCommHdlr objects will deal with all incoming and outgoing
+    // message traffic.  DivisibleProducer will interact with each of their
+    // message queues pushing out messages to the sender and retreiving
+    // and responding to receiver messages.  Let's get them constructed
+    // and then, running in go().
+
+    _pReceiverMch = new MsgCommHdlr( std::string( "LwccRcvrFor" ) + std::string( instanceName ),
                                      MCH_Function::receiver, _lhost, _lport, connectTmo, readTmo );
+    _pSenderMch = new MsgCommHdlr(  std::string( "SenderToConsFor" ) + std::string( instanceName ),
+                                  MCH_Function::sender, _chost, _cport, connectTmo, readTmo );
 
     char logName[128] = { 0 };
     strcpy( logName, "DivisibleProducer." );
@@ -99,25 +108,6 @@ DivisibleProducer::DivisibleProducer(
     IWAY_LOG_SET_PROG_NAME( logName );
 
     IWAY_LOG_SET_PROG_NAME( logName );
-
-    // Two MsgCommHdlr objects will deal with all incoming and outgoing
-    // message traffic.  DivisibleProducer will interact with each of their
-    // message queues pushing out messages to the sender and retreiving
-    // and responding to receiver messages.  Let's get them constructed
-    // and running.
-
-#ifdef DEBUG_DIVISIBLE
-    printf( "Starting MsgCommHdlr instances.\n" );
-#endif
-
-
-    _pSenderMch->go();
-    _pReceiverMch->go();
-
-    // Important thread management - wait until the
-    // MsgCommHdlr objects terminate and return
-    _pSenderMch->join();
-    _pReceiverMch->join();
 
 } // End DivisibleProducer(...)
 
@@ -134,7 +124,19 @@ DivisibleProducer::~DivisibleProducer() {
 /**************************************************************************/
 void DivisibleProducer::go() {
 
+#ifdef DEBUG_DIVISIBLE
+    printf( "DivisibleProducer::go(), starting MsgCommHdlr instances.\n" );
+#endif
+
+    _pSenderMch->go();
+    _pReceiverMch->go();
+
     mainLoop();
+
+    // Important thread management - wait until the
+    // MsgCommHdlr objects terminate and return
+    _pSenderMch->join();
+    _pReceiverMch->join();
 
 } // End go()
 
@@ -150,7 +152,7 @@ void DivisibleProducer::mainLoop() {
     // Do some work here that must happen 'atomically' and
     // then, check to see if we've been directed to wrap it up.
 
-    char logMsg[128] = { 0 };
+    char logMsg[LOG_MSG_BUFFER_LEN] = { 0 };
     while( true ) {
 
 #ifdef DEBUG_DIVISIBLE
@@ -158,20 +160,36 @@ void DivisibleProducer::mainLoop() {
                   << " doing producer cycle" << ", on thread " << MY_TID << std::endl;
 #endif
 
-#ifdef DEBUG_DIVISIBLE_SLOWDOWN_1
+#ifdef DEBUG_DIVISIBLE_SLOWDOWN_1000
         std::cout << __PRETTY_FUNCTION__ << " slowing down " << _instanceName
                   << " 1000 msec" << ", on thread " << MY_TID << std::endl;
         ThreadedWorker::threadSleep( 1000 );
 #endif
 
-#ifdef DEBUG_DIVISIBLE_SLOWDOWN_3
+#ifdef DEBUG_DIVISIBLE_SLOWDOWN_3000
         std::cout << __PRETTY_FUNCTION__ << " slowing down " << _instanceName
                   << " 3000 msec" << ", on thread " << MY_TID << std::endl;
         ThreadedWorker::threadSleep( 3000 );
 #endif
 
+#ifdef DEBUG_DIVISIBLE_EXTREME
+        std::cout << "PRODUCER THING COMING !!!!" << std::endl;
+        std::cout << "PRODUCER THING COMING !!!!" << std::endl;
+        std::cout << "PRODUCER THING COMING !!!!" << std::endl;
+        std::cout << "PRODUCER THING COMING !!!!" << std::endl;
+        std::cout << "PRODUCER THING COMING !!!!" << std::endl;
+#endif
+
         // Do a new producer cycle
         doProducerThing();
+
+#ifdef DEBUG_DIVISIBLE_EXTREME
+        std::cout << "PRODUCER THING DONE !!!!" << std::endl;
+        std::cout << "PRODUCER THING DONE !!!!" << std::endl;
+        std::cout << "PRODUCER THING DONE !!!!" << std::endl;
+        std::cout << "PRODUCER THING DONE !!!!" << std::endl;
+        std::cout << "PRODUCER THING DONE !!!!" << std::endl;
+#endif
 
         // Next, read from receiver (for shutdown msg)
 
@@ -182,21 +200,29 @@ void DivisibleProducer::mainLoop() {
 
         std::string *pMessage = _pReceiverMch->dequeueMessage();
         if( NULL != pMessage ) {
+
+            // We got a message from the receiver, only
+            // looking for shutdown at this time
+
             if( pMessage->compare( GMR_SHUTDOWN ) == 0 ) {
                 // Shutdown has been signaled
                 _pSenderMch->signalShutdown( true );
                 _pReceiverMch->signalShutdown( true );
             } else {
+                memset( logMsg, 0, LOG_MSG_BUFFER_LEN );
                 strcpy( logMsg, "Received unrecognized command: " );
                 strcat( logMsg, pMessage->c_str() );
                 IWAY_LOG( IWAY_LOG_INFO, logMsg );
-
             }
+
+            // Remember the contract - you pop a string off
+            // the queue, you are responsible for its memory -
             delete pMessage;
+
         }
 
         // Slow this loop down just a bit!
-        ThreadedWorker::threadSleep( MAINLOOP_SEND_SLEEP_SECS );
+        ThreadedWorker::threadSleep( MAINLOOP_SLEEP_MSECS );
 
     } // End while( true )
 
@@ -213,6 +239,13 @@ void DivisibleProducer::doProducerThing() {
     // other end.
     std::string *pString = new std::string( GMR_PRODUCER +
                                             std::to_string( genResult ) );
+
+#ifdef DEBUG_DIVISIBLE
+        std::cout << "*********** ************* ********** ************* *********** " << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
+                  << ", new string: " << *pString << ", on thread " << MY_TID << std::endl;
+#endif
+
     _pSenderMch->enqueueMessage( pString );
 
 } // End doProducerThing()

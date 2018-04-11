@@ -215,6 +215,11 @@ sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct,
                  MSH_INVALID_SOCKSTRUCT );
         IWAY_LOG( IWAY_LOG_ERROR, full_log_msg );
         sock_struct->result = MSH_INVALID_SOCKSTRUCT;
+
+#ifdef DEBUG_MSH
+        printf( "msg_sock_hdlr_listen sock_struct invalid, returning " );
+#endif
+
         return sock_struct;
     }
 
@@ -239,6 +244,11 @@ sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct,
                  MSH_ERROR_SOCKLISTEN );
         IWAY_LOG( IWAY_LOG_ERROR, full_log_msg );
         sock_struct->result = MSH_ERROR_SOCKLISTEN;
+
+#ifdef DEBUG_MSH
+        printf( "msg_sock_hdlr_listen listener setup failed, returning " );
+#endif
+
         return sock_struct;
     }
 
@@ -269,8 +279,18 @@ sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct,
                                  MSH_CONNECT_TIMEOUT );
                         IWAY_LOG( IWAY_LOG_INFO, full_log_msg );
                         sock_struct->result = MSH_CONNECT_TIMEOUT;
+
+#ifdef DEBUG_MSH
+                        printf( "msg_sock_hdlr_listen shudown signaled, returning " );
+#endif
+
                         return sock_struct;
                     }
+
+#ifdef DEBUG_MSH
+                    printf( "msg_sock_hdlr_listen accept() timed out, try again.\n" );
+#endif
+
                     continue;
                 }
             }
@@ -287,7 +307,7 @@ sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct,
         if( set_cli_timeout ) {
 
 #ifdef DEBUG_MSH
-            printf( "Setting Client Timeouts\n" );
+            printf( "msg_sock_hdlr_listen setting client timeouts\n" );
 #endif
 
             if( setsockopt( local_client_sd, SOL_SOCKET, SO_SNDTIMEO, &tmsend, sizeof tmsend) < 0 ) {
@@ -310,6 +330,10 @@ sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct,
 
         sock_struct->result = MSH_CLIENT_CONNECTED;
         sock_struct->csd = local_client_sd;
+
+#ifdef DEBUG_MSH
+            printf( "msg_sock_hdlr_listen returning with client successfully connected \n" );
+#endif
 
         return sock_struct;
 
@@ -342,6 +366,11 @@ sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct,
                  MSH_INVALID_SOCKSTRUCT );
         IWAY_LOG( IWAY_LOG_ERROR, full_log_msg );
         sock_struct->result = MSH_INVALID_SOCKSTRUCT;
+
+#ifdef DEBUG_MSH
+        printf( "msg_sock_hdlr_recv invalid struct, returning \n" );
+#endif
+
         return sock_struct;
     }
 
@@ -365,7 +394,7 @@ sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct,
     int return_code = MSH_MESSAGE_NOT_RECVD;
 
 #ifdef DEBUG_MSH
-    printf( "Receiver process receiving message from Sender ...\n" );
+    printf( "msg_sock_hdlr_recv recvg msg ...\n" );
 #endif
 
     // There is a tricky circumstance that must be accounted for in this
@@ -381,7 +410,7 @@ sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct,
     while( ( bytes_read = read( local_client_sd , rd_buf, sizeof( rd_buf ) ) ) > 0 ) {
 
 #ifdef DEBUG_MSH
-        printf( "Server: socket read-loop, bytes_read: %d\n", bytes_read );
+        printf( "msg_sock_hdlr_recv read-loop, bytes_read: %d\n", bytes_read );
 #endif
 
         // COULD check if the read contents IS null-byte terminated, and, if so,
@@ -398,9 +427,14 @@ sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct,
             // of course, returning what we did handle from the recv
             // as previously copied to message_buff.
 #ifdef DEBUG_MSH
-            printf( "Client input buffer (message_buf) overflow.\n" );
+            printf( "msg_sock_hdlr_recv buffer (message_buf) overflow.\n" );
             printf( "Rejecting last-read input (rd_buf).  Exiting.\n" );
 #endif
+
+            sprintf( full_log_msg,
+                     "MSH Err %d; msg_sock_hdlr_recv buf overflow",
+                     MSH_MESSAGE_RECVD_OVERFLOW );
+            IWAY_LOG( IWAY_LOG_ERROR, full_log_msg );
 
             message_size = -1 * message_size; // message_buf is essentially bad
             return_code = MSH_MESSAGE_RECVD_OVERFLOW;
@@ -413,17 +447,17 @@ sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct,
         return_code = MSH_MESSAGE_RECVD;
 
 #ifdef DEBUG_MSH
-        printf( "... current message_buf: %s\n", message_buf );
+        printf( "msg_sock_hdlr_recv current message_buf: %s\n", message_buf );
 #endif
         message_size += bytes_read;
 
 #ifdef DEBUG_MSH
-        printf( "Now, message_size: %d\n", message_size ); 
+        printf( "Now, msg_sock_hdlr_recv message_size: %d\n", message_size ); 
 #endif
 
         if( bytes_read < sizeof( rd_buf ) ) {
 
-#ifdef DEBUG_MSH
+#ifdef DEBUG_MSH_RETIRED
             printf( "Found a rec'd byte count less than sizeof rd_buf -\n"
                     "interpret that to mean 'end of send'.\n" );
 #endif
@@ -441,7 +475,7 @@ sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct,
         // left unfound for someone).  So, I'll leave both tests in.'
         if( message_buf[ message_size - 1] == '\0' ) {
 
-#ifdef DEBUG_MSH
+#ifdef DEBUG_MSH_RETIRED
             printf( "Found that pesky even-multiple case, but the null byte\n"
                     "rec'd indicates we're done - by contract (see 'end of send'\n"
                     "comments in source code above).\n" );
@@ -457,7 +491,7 @@ sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct,
         if( set_cli_timeout && ( errno == EWOULDBLOCK || errno == EAGAIN ) ) { 
 
 #ifdef DEBUG_MSH
-            printf( "Recv timeout happened (bytes_read<0).\n" );
+            printf( "msg_sock_hdlr_recv timeout (bytes_read<0).\n" );
 #endif
 
             return_code = MSH_MESSAGE_RECV_TIMEOUT;
@@ -465,7 +499,7 @@ sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct,
     }
     if( bytes_read > 0 && sendAck ) {
 
-#ifdef DEBUG_MSH
+#ifdef DEBUG_MSH_RETIRED
         printf( "ACK will be sent next\n" );
 #endif
 
@@ -477,13 +511,13 @@ sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct,
             return_code = MSH_ERROR_ACK_SEND_FAIL;
         }
 
-#ifdef DEBUG_MSH
+#ifdef DEBUG_MSH_RETIRED
         printf( "ACK msg sent: %s\n", ack_response );
 #endif
 
     }
 
-#ifdef DEBUG_MSH
+#ifdef DEBUG_MSH_RETIRED
     printf( "End of while( 'read > 0' ) - bytes read: <%d>\n", bytes_read );
     printf( "Received <%s>\n", message_buf );
     printf( "Return code: %s.\n", MSH_DEFINE_NAME( return_code ) );
@@ -540,11 +574,11 @@ sock_struct_t *msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct )
     for( ptr_addrinfo = servinfo; ptr_addrinfo != NULL; ptr_addrinfo = ptr_addrinfo->ai_next ) {
         if( ( local_client_sd =
               socket( ptr_addrinfo->ai_family, ptr_addrinfo->ai_socktype, ptr_addrinfo->ai_protocol ) ) == -1 ) {
-            perror( "Client: socket" );
+            // DEBUG perror( "Client: socket" );
             continue;
         }
         if( connect( local_client_sd, ptr_addrinfo->ai_addr, ptr_addrinfo->ai_addrlen ) == -1 ) {
-            perror( "Client: connect" );
+            // DEBUG perror( "Client: connect" );
             close( local_client_sd );
             continue;
         }
@@ -554,7 +588,7 @@ sock_struct_t *msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct )
     if( ptr_addrinfo == NULL ) {
 
 #ifdef DEBUG_MSH
-        fprintf( stderr, "Failed to connect to service.  Exiting.\n" );
+        fprintf( stderr, "Failed to connect to service at this time.  Exiting.\n" );
 #endif
 
         sock_struct->result = MSH_ERROR_NOCONNECT;
@@ -566,7 +600,7 @@ sock_struct_t *msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct )
  
     if( set_cli_timeout ) {
 
-#ifdef DEBUG_MSH
+#ifdef DEBUG_MSH_RETIRED
         printf( "Setting Client Timeouts\n" );
 #endif
 
@@ -631,9 +665,9 @@ sock_struct_t *msg_sock_hdlr_send( sock_struct_t *sock_struct,
 
 #ifdef DEBUG_MSH
         printf( "Message send failed.  Returning.\n" );
+        perror( "send() failure in Client" );
 #endif
 
-        perror( "send() failure in Client" );
         sprintf( full_log_msg,
                  "MSH Err %d; send() failure; closing client send socket",
                  MSH_MESSAGE_NOT_SENT );
@@ -651,7 +685,7 @@ sock_struct_t *msg_sock_hdlr_send( sock_struct_t *sock_struct,
     int bytes_read;
 
     if( awaitAck ) {
-#ifdef DEBUG_MSH
+#ifdef DEBUG_MSH_RETIRED
         printf( "ACK recv is next\n" );
 #endif
 
@@ -659,14 +693,14 @@ sock_struct_t *msg_sock_hdlr_send( sock_struct_t *sock_struct,
             sock_struct->result = MSH_ERROR_ACK_RECV_FAIL;
         }
 
-#ifdef DEBUG_MSH
+#ifdef DEBUG_MSH_RETIRED
         printf( "ACK bytes_read: %d\n", bytes_read );
         printf( "ACK rec'd: %s\n", ack_response );
 #endif
     }
 
 #ifdef DEBUG_MSH
-    printf( "Message sent to service.  Returning.\n" );
+    printf( "msg_sock_hdlr_send sent, returning.\n" );
 #endif
 
     return sock_struct;

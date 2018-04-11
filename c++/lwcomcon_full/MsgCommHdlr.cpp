@@ -33,7 +33,8 @@
 #include "MsgCommHdlr.h"
 #include <iostream>
 
-#define MAINLOOP_SEND_SLEEP_SECS 3
+#define MAINLOOP_SOCK_SETUP_SLEEP_MSECS 2500
+#define MAINLOOP_SEND_LOOP_SLEEP_MSECS 2000
 
 static std::string twPreamble( "ThreadedWorker_of_" );
 static std::string mpqPreamble( "PtrQueue_of_" );
@@ -149,6 +150,10 @@ void MsgCommHdlr::mainLoop() {
               << ", on thread " << MY_TID << std::endl;
 #endif
 
+    // DEBUG TODO REMOVE
+    // JTJTJT
+    int killcount = 5;
+
     // Quiet some compiler warnings with early declaration
     sock_struct_t *senderSockStruct = NULL;
     sock_struct_t *receiverSockStruct = NULL;
@@ -156,68 +161,168 @@ void MsgCommHdlr::mainLoop() {
     // Main queued message send/recv loop
     switch( _function ) {
     case sender: 
-        // Set up the sender socket once
-        senderSockStruct = doSenderSetup();
-        if( senderSockStruct->result != MSH_CLIENT_CONNECTED ) {
-            std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
-                      << ", failed attempting to set up socket for message sends. "
-                      << "Exiting mainLoop()." << std::endl;
-
-            signalShutdown( true );
-            break;
-        }
 
         while( true ) {
 
 #ifdef DEBUG_MSGCOMMHDLR
-            std::cout << "No shutdown yet, doing message send from "
-                      << __PRETTY_FUNCTION__ << " object " << _instanceName
-                      << ",\non thread " << MY_TID << std::endl;
+                std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
+                          << ", set up socket for message sends. " << std::endl;
 #endif
 
-            // Now send messages out that already set up socket
-            doSendEnqueuedMessage( senderSockStruct );
+            // If looping, free old memory (harmless if not)
+            sock_struct_destroy( senderSockStruct );
 
-            if( isShutdownSignaled() ) break;
+            // Set up the sender socket once
+            senderSockStruct = doSenderSetup();
 
-            ThreadedWorker::threadSleep( MAINLOOP_SEND_SLEEP_SECS );
-        } // End while(true) ... send
-
-        break;
-
-    case receiver:
-        // Set up the receiver/listener socket here first.  That
-        // is, the listener socket is opened here AND NOT a
-        // corresponding client connection - that's done in the
-        // while loop, below
-        receiverSockStruct = doReceiverSetup();
-        if( receiverSockStruct->result != MSH_LISTENER_CREATED ) {
-            std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
-                      << ", failed attempting to set up socket for message sends. "
-                      << "Exiting mainLoop()." << std::endl;
-
-            signalShutdown( true );
-            break;
-        }
-
-        while( true ) {
+            if( senderSockStruct->result != MSH_CLIENT_CONNECTED ) {
 
 #ifdef DEBUG_MSGCOMMHDLR
-            std::cout << "No shutdown yet, doing message receive with "
-                      << _connectTimeout << " secs timeout,\nin "
-                      << __PRETTY_FUNCTION__ << " object " << _instanceName
-                      << ",\non thread " << MY_TID << std::endl;
+                std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
+                          << ", sender connect to receiver failed. Sleep, try again." << std::endl;
 #endif
 
-            doRecvAndEnqueueMessage( receiverSockStruct );
+                // TODO REMOVE JTJTJT DEBUG
+                std::cout << "*********************************JTJTJTJTJTJTJTJT******************************" << std::endl;
 
-            if( isShutdownSignaled() ) {
+                ThreadedWorker::threadSleep( MAINLOOP_SOCK_SETUP_SLEEP_MSECS );
+
+                if( isShutdownSignaled() ) {
+#ifdef DEBUG_MSGCOMMHDLR
+                        std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
+                                  << ", shutdown signaled (return), on thread " << MY_TID << std::endl;
+#endif
+
+                    // Close socket, free memory
+                    sock_struct_destroy( senderSockStruct ); 
+                    return;
+                }
+
+                // Sender socket NOT set up, will loop on outer while
+                continue;
+
+            } else {
+
+                // Sender socket is all set up, now loop on sending
+
+                while( true ) {
+
+#ifdef DEBUG_MSGCOMMHDLR
+                    std::cout << "No shutdown yet, doing message send from "
+                              << __PRETTY_FUNCTION__ << " object " << _instanceName
+                              << ",on thread " << MY_TID << std::endl;
+#endif
+
+                    // TODO REMOVE JTJTJT DEBUG
+                    std::cout << "*********************************JTJTJTJTJTJTJTJT******************************" << std::endl;
+                    // Now send messages out that already set up socket
+                    doSendEnqueuedMessage( senderSockStruct );
+                    // TODO REMOVE JTJTJT DEBUG
+                    std::cout << "*********************************JTJTJTJTJTJTJTJT******************************" << std::endl;
+
+                    if( isShutdownSignaled() ) {
+#ifdef DEBUG_MSGCOMMHDLR
+                            std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
+                                      << " - shutdown signaled, on thread " << MY_TID << std::endl;
+#endif
+
+                        // Close socket, free memory
+                        sock_struct_destroy( senderSockStruct ); 
+                        return;
+                    }
+
+                    // Slow this down just a bit
 #ifdef DEBUG_MSGCOMMHDLR
                     std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
-                              << "recv timed out - shutdown signaled, on thread " << MY_TID << std::endl;
+                              << ", doing #define send-loop slow-down, on thread " << MY_TID << std::endl;
 #endif
-                break;
-            }
+
+                    ThreadedWorker::threadSleep( MAINLOOP_SEND_LOOP_SLEEP_MSECS );
+
+                    // TODO REMOVE JTJTJT DEBUG
+                    std::cout << "*********************************JTJTJTJTJTJTJTJT******************************" << std::endl;
+                    if( --killcount < 1 ) {
+                        _socketReadShutdownFlag = 1;
+                        ThreadedWorker::threadSleep( 15000 );
+                        return;
+                    }
+
+                } // End while(true) ... keep sending
+
+            } // End else sender socket was set up
+
+        } // End sender outter while()
+
+    case receiver:
+
+        while( true ) {
+            // Set up the receiver/listener socket here first.  That
+            // is, the listener socket is opened here AND NOT a
+            // corresponding client connection - that's done in the
+            // while loop, below
+            
+            // If looping, free old memory (harmless if not)
+            sock_struct_destroy( receiverSockStruct );
+
+            receiverSockStruct = doReceiverSetup();
+
+            if( receiverSockStruct->result != MSH_LISTENER_CREATED ) {
+
+#ifdef DEBUG_MSGCOMMHDLR
+                std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
+                          << ", receiver socket setup failed. Sleep, try again." << std::endl;
+#endif
+
+                ThreadedWorker::threadSleep( MAINLOOP_SOCK_SETUP_SLEEP_MSECS );
+
+                if( isShutdownSignaled() ) {
+#ifdef DEBUG_MSGCOMMHDLR
+                        std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
+                                  << " shutdown signaled (return), on thread " << MY_TID << std::endl;
+#endif
+
+                    // Close socket, free memory
+                    sock_struct_destroy( receiverSockStruct ); 
+                    return;
+                }
+
+                // Listener socket NOT set up, will loop on outer while
+                continue;
+
+            } else {
+
+                // Listener socket is properly set up, loop on receiving
+                while( true ) {
+#ifdef DEBUG_MSGCOMMHDLR
+
+                    std::cout << "*************************************************************" << std::endl;
+                    std::cout << "*************************************************************" << std::endl;
+                    std::cout << "*************************************************************" << std::endl;
+                    std::cout << "*************************************************************" << std::endl;
+                    std::cout << "*************************************************************" << std::endl;
+                    std::cout << "*************************************************************" << std::endl;
+                    std::cout << "Msg receive with "
+                              << _connectTimeout << " secs timeout, in "
+                              << __PRETTY_FUNCTION__ << " object " << _instanceName
+                              << ",on thread " << MY_TID << std::endl;
+#endif
+
+                    doRecvAndEnqueueMessage( receiverSockStruct );
+
+                    if( isShutdownSignaled() ) {
+#ifdef DEBUG_MSGCOMMHDLR
+                            std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
+                                      << "recv timed out - shutdown signaled, on thread " << MY_TID << std::endl;
+#endif
+
+                        // Close socket, free memory
+                        sock_struct_destroy( receiverSockStruct ); 
+                        return;
+                    }
+                } // End while( true ) keep recv and enqueue ...
+
+            } // End else listener was created
+
         } // End while(true) ... receive
 
         break;
@@ -225,7 +330,7 @@ void MsgCommHdlr::mainLoop() {
     default:
             break;
 
-    } // End switch(...)
+    } // End switch( _function )
 
 #ifdef DEBUG_MSGCOMMHDLR
     std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
@@ -344,7 +449,16 @@ sock_struct_t *MsgCommHdlr::doRecvAndEnqueueMessage( sock_struct_t *s ) {
  * responsible for memory management of pointed to std::string
  */
 std::string* MsgCommHdlr::dequeueMessage() {
-    return _ptrQueue.deQueueElementPtr();
+        
+    std::string *pString = _ptrQueue.deQueueElementPtr();
+
+#ifdef DEBUG_MSGCOMMHDLR
+    std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
+              << " dequeued " << (pString == NULL ? "NULL" : *pString)
+              << ", on thread " << MY_TID << std::endl;
+#endif
+
+    return pString;
 
 } // End dequeueMessage()
 
@@ -354,6 +468,13 @@ std::string* MsgCommHdlr::dequeueMessage() {
  * String WILL BE DELETED when and if its content is sent over the network.
  */
 void MsgCommHdlr::enqueueMessage( std::string *msg ) {
+
+#ifdef DEBUG_MSGCOMMHDLR
+    std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
+              << " enqueuing " << *msg << ", on thread "
+              << MY_TID << std::endl;
+#endif
+
     _ptrQueue.enQueueElementPtr( msg );
 
 } // End enqueueMessage(...)
