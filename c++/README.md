@@ -23,4 +23,4 @@ a model for safe, responsible management of pointer-based C++ collections),
 This subdirectory project employs all the pieces above in a working example that is intended to
 be run from three console windows to illustrate the dynamics.  
 
-See [./lwcomcon_full/](./lwcomcon_full/).
+See [./lwcomcon_full/run_triad.sh](./lwcomcon_full/run_triad.sh).
