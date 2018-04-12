@@ -284,11 +284,8 @@ void MsgCommHdlr::mainLoop() {
 
                 // Listener socket is properly set up, loop on receiving
                 while( true ) {
-#ifdef DEBUG_MSGCOMMHDLR
 
-                    std::cout << "*************************************************************" << std::endl;
-                    std::cout << "*************************************************************" << std::endl;
-                    std::cout << "*************************************************************" << std::endl;
+#ifdef DEBUG_MSGCOMMHDLR
                     std::cout << "Msg receive with "
                               << _connectTimeout << " secs timeout, in "
                               << __PRETTY_FUNCTION__ << " object " << _instanceName
@@ -298,6 +295,7 @@ void MsgCommHdlr::mainLoop() {
                     doRecvAndEnqueueMessage( receiverSockStruct );
 
                     if( ThreadedWorker::isShutdownSignaled() ) {
+
 #ifdef DEBUG_MSGCOMMHDLR
                             std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
                                       << ", recv timed out - shutdown signaled, on thread " << MY_TID << std::endl;
@@ -408,13 +406,13 @@ sock_struct_t *MsgCommHdlr::doRecvAndEnqueueMessage( sock_struct_t *s ) {
 #endif
 
     // No mutexing needed; this is a private method on a ThreadedWorker
-
-    memset( _receiveBuf, 0, RECV_MESSAGE_BUF_LEN );
+    // and _receiveBuf is dedicated to only a single 'receiver' function
     s = msg_sock_hdlr_listen( s, &_socketReadShutdownFlag );
     if( s->result != MSH_CLIENT_CONNECTED ) {
         return s;
     }
 
+    memset( _receiveBuf, 0, RECV_MESSAGE_BUF_LEN );
     bool sendAck = false;
     s = msg_sock_hdlr_recv( s, _receiveBuf, RECV_MESSAGE_BUF_LEN,
                             &_socketReadShutdownFlag, sendAck );
@@ -440,16 +438,7 @@ std::string* MsgCommHdlr::dequeueMessage() {
               << " dequeued " << (pString == NULL ? "NULL" : *pString)
               << ", on thread " << MY_TID << std::endl;
     if( pString != NULL ) {
-        std::cout << " dequeued " << *pString << std::endl;
-        std::cout << " dequeued " << *pString << std::endl;
-        std::cout << " dequeued " << *pString << std::endl;
-        std::cout << " dequeued " << *pString << std::endl;
-        std::cout << " dequeued " << *pString << std::endl;
-        std::cout << " dequeued " << *pString << std::endl;
-        std::cout << " dequeued " << *pString << std::endl;
-        std::cout << " dequeued " << *pString << std::endl;
-        std::cout << " dequeued " << *pString << std::endl;
-        std::cout << " dequeued " << *pString << std::endl;
+        std::cout << "Dequeued: " << *pString << std::endl;
     }
 #endif
 

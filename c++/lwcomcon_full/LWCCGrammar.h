@@ -46,6 +46,7 @@
 #define LWGMR_CONSUMER ":CONSUMER:"
 #define LWGMR_PRODUCER ":PRODUCER:"
 #define LWGMR_CONTROL  ":CONTROL:"
+#define LWGMR_CP_RESULTS  ":CONSUMER_PROCESS_RESULTS:"
 
 #include <string.h>
 #include <string>

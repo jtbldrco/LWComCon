@@ -112,11 +112,6 @@ void LWComConFull::mainLoop() {
     // Do dashboardy things here - like take requests to shutdown
     // other triad processes.
 
-    // Define the pointer here; a new string will have to be
-    // constructed for each message since the receiver will then
-    // delete it (later).
-    std::string *pShutdownMsg = NULL;
-
     while( true ) {
 
         std::string response;
@@ -168,15 +163,13 @@ void LWComConFull::mainLoop() {
         if( R1 ) {
             // This string will be popped, processed and
             // then deleted by the MsgCommHdlr
-            pShutdownMsg = new std::string( LWGMR_SHUTDOWN );
-            _pSenderToProd->enqueueMessage( pShutdownMsg );
+            _pSenderToProd->enqueueMessage( new std::string( LWGMR_SHUTDOWN ) );
         }
 
         if( R2 ) {
             // This string will be popped, processed and
             // then deleted by the MsgCommHdlr
-            pShutdownMsg = new std::string( LWGMR_SHUTDOWN );
-            _pSenderToCon->enqueueMessage( pShutdownMsg );
+            _pSenderToCon->enqueueMessage( new std::string( LWGMR_SHUTDOWN ) );
         }
 
         if( R3 ) {

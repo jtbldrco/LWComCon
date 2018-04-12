@@ -84,8 +84,7 @@ DivisibleProducer::DivisibleProducer(
     const int connectTmo, const int readTmo ) :
     _instanceName( instanceName ),
     _lhost( lhost ), _lport( lport ),
-    _chost( chost ), _cport( cport ),
-    _shutdownSignaled( 0 )
+    _chost( chost ), _cport( cport )
 {
 
 #ifdef DEBUG_DIVISIBLE
@@ -121,18 +120,6 @@ DivisibleProducer::~DivisibleProducer() {
 
 
 /**************************************************************************/
-bool DivisibleProducer::isShutdownSignaled() const {
-    return _shutdownSignaled;
-} // End isShutdownSignaled(...)
-
-
-/**************************************************************************/
-void DivisibleProducer::signalShutdown( bool flag ) {
-    _shutdownSignaled = flag;
-} // End signalShutdown(...)
-
-
-/**************************************************************************/
 void DivisibleProducer::go() {
 
 #ifdef DEBUG_DIVISIBLE
@@ -154,6 +141,8 @@ void DivisibleProducer::go() {
 
 /**************************************************************************/
 void DivisibleProducer::mainLoop() {
+
+    bool shutdownSignalDetected = false;
 
 #ifdef DEBUG_DIVISIBLE
     std::cout << "Entered " << __PRETTY_FUNCTION__
@@ -221,7 +210,7 @@ void DivisibleProducer::mainLoop() {
                 // Shutdown has been signaled
                 _pSenderMch->signalShutdown( true );
                 _pReceiverMch->signalShutdown( true );
-                signalShutdown( true );
+                shutdownSignalDetected = true;
             } else {
                 memset( logMsg, 0, LOG_MSG_BUFFER_LEN );
                 strcpy( logMsg, "Received unrecognized command: " );
@@ -235,7 +224,7 @@ void DivisibleProducer::mainLoop() {
 
         }
 
-        if( isShutdownSignaled() ) return;
+        if( shutdownSignalDetected ) return;
         // Slow this loop down just a bit!
         ThreadedWorker::threadSleep( MAINLOOP_SLEEP_MSECS );
 
@@ -257,12 +246,8 @@ void DivisibleProducer::doProducerThing() {
                                             std::to_string( genResult ) );
 
 #ifdef DEBUG_DIVISIBLE
-        std::cout << "*********** ************* ********** ************* *********** " << std::endl;
-        std::cout << "*********** ************* ********** ************* *********** " << std::endl;
         std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
-                  << ", new string: " << *pString << ", on thread " << MY_TID << std::endl;
-        std::cout << "*********** ************* ********** ************* *********** " << std::endl;
-        std::cout << "*********** ************* ********** ************* *********** " << std::endl;
+                  << ", new work product: " << *pString << ", on thread " << MY_TID << std::endl;
 #endif
 
     _pSenderMch->enqueueMessage( pString );

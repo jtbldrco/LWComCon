@@ -69,8 +69,7 @@ DivisibleConsumer::DivisibleConsumer(
     const int connectTmo, const int readTmo ) :
     _instanceName( instanceName ),
     _lwcchost( lwcchost ), _lwccport( lwccport ),
-    _clhost( clhost ), _clport( clport ),
-    _shutdownSignaled( 0 )
+    _clhost( clhost ), _clport( clport )
 {
 
     // Two MsgCommHdlr objects will be used to deal with incoming message
@@ -102,18 +101,6 @@ DivisibleConsumer::~DivisibleConsumer() {
 
 
 /**************************************************************************/
-bool DivisibleConsumer::isShutdownSignaled() const {
-    return _shutdownSignaled;
-} // End isShutdownSignaled(...)
-
-
-/**************************************************************************/
-void DivisibleConsumer::signalShutdown( bool flag ) {
-    _shutdownSignaled = flag;
-} // End signalShutdown(...)
-
-
-/**************************************************************************/
 void DivisibleConsumer::go() {
 
     _pLwccReceiverMch->go();
@@ -132,6 +119,7 @@ void DivisibleConsumer::go() {
 /**************************************************************************/
 void DivisibleConsumer::mainLoop() {
 
+    bool shutdownSignalDetected = false;
 #ifdef DEBUG_DIVISIBLE
     std::cout << "Entered " << __PRETTY_FUNCTION__
               << " on thread " << MY_TID << std::endl;
@@ -188,7 +176,7 @@ void DivisibleConsumer::mainLoop() {
                 // Shutdown has been signaled
                 _pLwccReceiverMch->signalShutdown( true );
                 _pConsReceiverMch->signalShutdown( true );
-                signalShutdown( true );
+                shutdownSignalDetected = true;
             }
 
             // the queue, you are responsible for its memory -
@@ -196,7 +184,7 @@ void DivisibleConsumer::mainLoop() {
 
         }
 
-        if( isShutdownSignaled() ) return;
+        if( shutdownSignalDetected ) return;
         // Slow this loop down just a bit!
         ThreadedWorker::threadSleep( MAINLOOP_SLEEP_MSECS );
 
@@ -213,20 +201,26 @@ void DivisibleConsumer::doConsumerThing()
 
     std::string *pString = _pConsReceiverMch->dequeueMessage();
     if( pString != NULL ) {
-        if( pString->find( LWGMR_PRODUCER ) != std::string::npos ) {
-            // Got a good message from the producer side - 
-            // consume it!
+        if( LWCCGrammar::isMessageType( pString, LWGMR_PRODUCER ) ) {
+            // Got a good PRODUCER message - consume it!
+            char *content = LWCCGrammar::messageContent( pString, LWGMR_PRODUCER );
+            if( content != NULL ) {
 
-
-//TODO Strip out number... but, for now ...
-            int number = 55000;
-            do_compilation( number, results );
+                char *endptr;
+                int number = (int)strtol( content, &endptr, 10 );
+                if( number > 0 ) {
+                    do_compilation( number, results );
 
 #ifdef DEBUG_DIVISIBLE
-            std::cout << "*** CONSUMER RESULTS *** *** CONSUMER RESULTS *** *** CONSUMER RESULTS *** " << std::endl;
-            std::cout << __PRETTY_FUNCTION__ << " on thread " << MY_TID
-                      << ", new consumer result: \n" << results << std::endl;
+                    std::cout << "*** CONSUMER RESULTS ***" << std::endl;
+                    std::cout << __PRETTY_FUNCTION__ << " on thread " << MY_TID
+                              << ", new consumer result: \n" << results << std::endl;
 #endif
+
+                    handleConsumerProcessResults( results );
+                } // End if number > 0
+                
+            } // End if not-null
 
         } else {
             strcpy( logMsg, "Received unrecognized command: " );
@@ -238,3 +232,12 @@ void DivisibleConsumer::doConsumerThing()
     }
 
 } // End doConsumeThing()
+
+/**************************************************************************/
+void DivisibleConsumer::handleConsumerProcessResults( const char * results )
+{
+    // Choice of what to do (like send to another MsgCommHdlr) -
+    // here, we'll just output to stdout
+    std::cout << LWGMR_CP_RESULTS << results << std::endl;
+
+} // End handleConsumerProcessResults(...)
