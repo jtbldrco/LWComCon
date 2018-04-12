@@ -112,7 +112,10 @@ void LWComConFull::mainLoop() {
     // Do dashboardy things here - like take requests to shutdown
     // other triad processes.
 
-    std::string *pShutdownMsg = new std::string( GMR_SHUTDOWN );
+    // Define the pointer here; a new string will have to be
+    // constructed for each message since the receiver will then
+    // delete it (later).
+    std::string *pShutdownMsg = NULL;
 
     while( true ) {
 
@@ -126,10 +129,10 @@ void LWComConFull::mainLoop() {
 
         std::cin >> response;
         
-        if( response.compare("1") ) i = 1;        
-        if( response.compare("2") ) i = 2;        
-        if( response.compare("3") ) i = 3;        
-        if( response.compare("4") ) i = 4;        
+        if( response.compare("1") == 0 ) i = 1;        
+        if( response.compare("2") == 0 ) i = 2;        
+        if( response.compare("3") == 0 ) i = 3;        
+        if( response.compare("4") == 0 ) i = 4;        
 
         bool R1 = false;
         bool R2 = false;
@@ -157,8 +160,25 @@ void LWComConFull::mainLoop() {
             break;
 
         }
-        if( R1 ) _pSenderToProd->enqueueMessage( pShutdownMsg );
-        if( R2 ) _pSenderToCon->enqueueMessage( pShutdownMsg );
+
+#ifdef DEBUG
+        printf( ">>> LWComCon Entry = %d <<<\n", i );
+#endif
+
+        if( R1 ) {
+            // This string will be popped, processed and
+            // then deleted by the MsgCommHdlr
+            pShutdownMsg = new std::string( GMR_SHUTDOWN );
+            _pSenderToProd->enqueueMessage( pShutdownMsg );
+        }
+
+        if( R2 ) {
+            // This string will be popped, processed and
+            // then deleted by the MsgCommHdlr
+            pShutdownMsg = new std::string( GMR_SHUTDOWN );
+            _pSenderToCon->enqueueMessage( pShutdownMsg );
+        }
+
         if( R3 ) {
             // Can't be in a hurry here ...
             if( R4 ) ThreadedWorker::threadSleep( 10000 );
@@ -167,9 +187,16 @@ void LWComConFull::mainLoop() {
             _pListner->signalShutdown( true );
             return; 
         }
+
+        // And, if coming in from outside (into _pListener receiver)
+        if( _pListner->isShutdownSignaled() ) {
+            _pSenderToProd->signalShutdown( true );
+            _pSenderToCon->signalShutdown( true );
+            _pListner->signalShutdown( true );
+            return;
+        }
     
     } // End while()
-
 
 } // End mainLoop(...)
 

@@ -131,6 +131,11 @@ const bool MsgCommHdlr::isThreadRunning() {
 
 
 /**************************************************************************/
+bool MsgCommHdlr::isShutdownSignaled() const {
+    return ThreadedWorker::isShutdownSignaled();
+} // End isShutdownSignaled()
+
+/**************************************************************************/
 void MsgCommHdlr::signalShutdown( bool flag ) {
 
     // This int is a flag to the 'C' msg-hdlg api
@@ -141,18 +146,19 @@ void MsgCommHdlr::signalShutdown( bool flag ) {
 } // End signalShutdown(...)
     
 
-/**************************************************************************/
+/**************************************************************************
+ * mainLoop() is called from run() which means it's running on the 
+ * internal thread (not the thread of the owner/creator of this
+ * MsgCommHdlr).  So while this method has access to and can interact
+ * with data and members of MsgCommHdlr, it's running in parallel to
+ * the thread that called its constuctor and that called its method go().
+ */
 void MsgCommHdlr::mainLoop() {
-
 
 #ifdef DEBUG_MSGCOMMHDLR
     std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
               << ", on thread " << MY_TID << std::endl;
 #endif
-
-    // DEBUG TODO REMOVE
-    // JTJTJT
-    int killcount = 5;
 
     // Quiet some compiler warnings with early declaration
     sock_struct_t *senderSockStruct = NULL;
@@ -182,12 +188,9 @@ void MsgCommHdlr::mainLoop() {
                           << ", sender connect to receiver failed. Sleep, try again." << std::endl;
 #endif
 
-                // TODO REMOVE JTJTJT DEBUG
-                std::cout << "*********************************JTJTJTJTJTJTJTJT******************************" << std::endl;
-
                 ThreadedWorker::threadSleep( MAINLOOP_SOCK_SETUP_SLEEP_MSECS );
 
-                if( isShutdownSignaled() ) {
+                if( ThreadedWorker::isShutdownSignaled() ) {
 #ifdef DEBUG_MSGCOMMHDLR
                         std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
                                   << ", shutdown signaled (return), on thread " << MY_TID << std::endl;
@@ -213,14 +216,10 @@ void MsgCommHdlr::mainLoop() {
                               << ",on thread " << MY_TID << std::endl;
 #endif
 
-                    // TODO REMOVE JTJTJT DEBUG
-                    std::cout << "*********************************JTJTJTJTJTJTJTJT******************************" << std::endl;
                     // Now send messages out that already set up socket
                     doSendEnqueuedMessage( senderSockStruct );
-                    // TODO REMOVE JTJTJT DEBUG
-                    std::cout << "*********************************JTJTJTJTJTJTJTJT******************************" << std::endl;
 
-                    if( isShutdownSignaled() ) {
+                    if( ThreadedWorker::isShutdownSignaled() ) {
 #ifdef DEBUG_MSGCOMMHDLR
                             std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
                                       << " - shutdown signaled, on thread " << MY_TID << std::endl;
@@ -238,14 +237,6 @@ void MsgCommHdlr::mainLoop() {
 #endif
 
                     ThreadedWorker::threadSleep( MAINLOOP_SEND_LOOP_SLEEP_MSECS );
-
-                    // TODO REMOVE JTJTJT DEBUG
-                    std::cout << "*********************************JTJTJTJTJTJTJTJT******************************" << std::endl;
-                    if( --killcount < 1 ) {
-                        _socketReadShutdownFlag = 1;
-                        ThreadedWorker::threadSleep( 15000 );
-                        return;
-                    }
 
                 } // End while(true) ... keep sending
 
@@ -275,7 +266,7 @@ void MsgCommHdlr::mainLoop() {
 
                 ThreadedWorker::threadSleep( MAINLOOP_SOCK_SETUP_SLEEP_MSECS );
 
-                if( isShutdownSignaled() ) {
+                if( ThreadedWorker::isShutdownSignaled() ) {
 #ifdef DEBUG_MSGCOMMHDLR
                         std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
                                   << " shutdown signaled (return), on thread " << MY_TID << std::endl;
@@ -298,9 +289,6 @@ void MsgCommHdlr::mainLoop() {
                     std::cout << "*************************************************************" << std::endl;
                     std::cout << "*************************************************************" << std::endl;
                     std::cout << "*************************************************************" << std::endl;
-                    std::cout << "*************************************************************" << std::endl;
-                    std::cout << "*************************************************************" << std::endl;
-                    std::cout << "*************************************************************" << std::endl;
                     std::cout << "Msg receive with "
                               << _connectTimeout << " secs timeout, in "
                               << __PRETTY_FUNCTION__ << " object " << _instanceName
@@ -309,7 +297,7 @@ void MsgCommHdlr::mainLoop() {
 
                     doRecvAndEnqueueMessage( receiverSockStruct );
 
-                    if( isShutdownSignaled() ) {
+                    if( ThreadedWorker::isShutdownSignaled() ) {
 #ifdef DEBUG_MSGCOMMHDLR
                             std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
                                       << ", recv timed out - shutdown signaled, on thread " << MY_TID << std::endl;
@@ -325,11 +313,6 @@ void MsgCommHdlr::mainLoop() {
 
         } // End while(true) ... receive
 
-        break;
-
-    default:
-            break;
-
     } // End switch( _function )
 
 #ifdef DEBUG_MSGCOMMHDLR
@@ -338,7 +321,7 @@ void MsgCommHdlr::mainLoop() {
               << " rec'd shutdown signal, exited while()." << std::endl;
 #endif
 
-    signalShutdown( true );
+    ThreadedWorker::signalShutdown( true );
     sock_struct_destroy( receiverSockStruct ); 
     sock_struct_destroy( senderSockStruct ); 
 
@@ -456,6 +439,18 @@ std::string* MsgCommHdlr::dequeueMessage() {
     std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
               << " dequeued " << (pString == NULL ? "NULL" : *pString)
               << ", on thread " << MY_TID << std::endl;
+    if( pString != NULL ) {
+        std::cout << " dequeued " << *pString << std::endl;
+        std::cout << " dequeued " << *pString << std::endl;
+        std::cout << " dequeued " << *pString << std::endl;
+        std::cout << " dequeued " << *pString << std::endl;
+        std::cout << " dequeued " << *pString << std::endl;
+        std::cout << " dequeued " << *pString << std::endl;
+        std::cout << " dequeued " << *pString << std::endl;
+        std::cout << " dequeued " << *pString << std::endl;
+        std::cout << " dequeued " << *pString << std::endl;
+        std::cout << " dequeued " << *pString << std::endl;
+    }
 #endif
 
     return pString;

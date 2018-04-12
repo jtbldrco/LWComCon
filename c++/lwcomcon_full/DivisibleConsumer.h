@@ -44,6 +44,8 @@ public:
     virtual ~DivisibleConsumer();
 
     void go(); // How object is put into motion
+    void signalShutdown( bool flag );
+    bool isShutdownSignaled() const;
 
 protected:
 
@@ -55,6 +57,7 @@ private:
 
     void mainLoop();
     void doConsumerThing();
+    bool _shutdownSignaled;
 
     std::string _lwcchost;
     int _lwccport;

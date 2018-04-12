@@ -45,6 +45,8 @@ public:
 
     void go(); // How object is put into motion
     void doProducerThing();
+    void signalShutdown( bool flag );
+    bool isShutdownSignaled() const;
 
 protected:
 
@@ -55,6 +57,8 @@ private:
     MsgCommHdlr *_pReceiverMch;
 
     void mainLoop();
+
+    bool _shutdownSignaled;
 
     std::string _lhost;
     int _lport;

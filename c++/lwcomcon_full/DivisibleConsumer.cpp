@@ -69,7 +69,8 @@ DivisibleConsumer::DivisibleConsumer(
     const int connectTmo, const int readTmo ) :
     _instanceName( instanceName ),
     _lwcchost( lwcchost ), _lwccport( lwccport ),
-    _clhost( clhost ), _clport( clport )
+    _clhost( clhost ), _clport( clport ),
+    _shutdownSignaled( 0 )
 {
 
     // Two MsgCommHdlr objects will be used to deal with incoming message
@@ -95,11 +96,21 @@ DivisibleConsumer::DivisibleConsumer(
 
 /**************************************************************************/
 DivisibleConsumer::~DivisibleConsumer() {
-
     delete _pLwccReceiverMch;
     delete _pConsReceiverMch;
-
 } // End ~DivisibleConsumer()
+
+
+/**************************************************************************/
+bool DivisibleConsumer::isShutdownSignaled() const {
+    return _shutdownSignaled;
+} // End isShutdownSignaled(...)
+
+
+/**************************************************************************/
+void DivisibleConsumer::signalShutdown( bool flag ) {
+    _shutdownSignaled = flag;
+} // End signalShutdown(...)
 
 
 /**************************************************************************/
@@ -177,6 +188,7 @@ void DivisibleConsumer::mainLoop() {
                 // Shutdown has been signaled
                 _pLwccReceiverMch->signalShutdown( true );
                 _pConsReceiverMch->signalShutdown( true );
+                signalShutdown( true );
             }
 
             // the queue, you are responsible for its memory -
@@ -184,6 +196,7 @@ void DivisibleConsumer::mainLoop() {
 
         }
 
+        if( isShutdownSignaled() ) return;
         // Slow this loop down just a bit!
         ThreadedWorker::threadSleep( MAINLOOP_SLEEP_MSECS );
 
@@ -223,6 +236,5 @@ void DivisibleConsumer::doConsumerThing()
 
         delete pString;
     }
-
 
 } // End doConsumeThing()

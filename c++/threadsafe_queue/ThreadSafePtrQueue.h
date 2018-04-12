@@ -275,7 +275,7 @@ public:
 
 #ifdef DEBUG_THREADSAFEPTRQUEUE
         cout << "Queue front is: " << *front << ", on thread " << MY_TID << endl;
-        cout << "Popping front, on thread " << MY_TID << endl;
+        cout << "Popped front, on thread " << MY_TID << endl;
 #endif
 
         _ptrQueue.pop_front();

@@ -54,6 +54,7 @@ public:
     void goUnthreaded(); // Skip startWorker() and run()
 
     void signalShutdown( bool flag );
+    bool isShutdownSignaled() const;
 
     // Returns a pointer to std::string. CALLER is then responsible
     // for memory management of pointed to std::string
