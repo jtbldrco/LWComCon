@@ -87,6 +87,8 @@ private:
     sock_struct_t * doSendEnqueuedMessage( sock_struct_t *s );
     sock_struct_t * doSenderSetup();
 
+    sock_struct_t * listenForClientConnection( sock_struct_t *s );
+
     // Receives a buffer from the network and new's an std::string
     // and stores a pointer to it in the queue
     sock_struct_t * doRecvAndEnqueueMessage( sock_struct_t *s );

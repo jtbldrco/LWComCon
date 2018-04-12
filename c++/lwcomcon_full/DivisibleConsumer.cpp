@@ -53,8 +53,7 @@ int main( int argc, char *argv[] ) {
 } // End main(...)
 
 
-
-#define MAINLOOP_SLEEP_MSECS 2500
+#define MAINLOOP_SLEEP_MSECS 1000
 #define LOG_MSG_BUFFER_LEN 256
 #define CONSUMER_RESULTS_BUFFER_LEN 256
 
@@ -151,7 +150,8 @@ void DivisibleConsumer::mainLoop() {
 #endif
 
         // This reads from the Producer input flow -
-        doConsumerThing();
+        pMessage = _pConsReceiverMch->dequeueMessage();
+        processConsumerQueue( pMessage );
 
         // Read from receiver for shutdown msg
 
@@ -161,30 +161,12 @@ void DivisibleConsumer::mainLoop() {
 #endif
 
         pMessage = _pLwccReceiverMch->dequeueMessage();
-        if( NULL != pMessage ) {
-
-            // We got a message from the receiver thread
-
-            if( pMessage->compare( LWGMR_SHUTDOWN ) == 0 ) {
-
-#ifdef DEBUG_DIVISIBLE
-                std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
-                          << " received shutdown msg" << ", on thread "
-                          << MY_TID << std::endl;
-#endif
-
-                // Shutdown has been signaled
-                _pLwccReceiverMch->signalShutdown( true );
-                _pConsReceiverMch->signalShutdown( true );
-                shutdownSignalDetected = true;
-            }
-
-            // the queue, you are responsible for its memory -
-            delete pMessage;
-
+        shutdownSignalDetected = processLwccQueue( pMessage );
+        if( shutdownSignalDetected ) {
+            _pLwccReceiverMch->signalShutdown( true );
+            _pConsReceiverMch->signalShutdown( true );
+            return;
         }
-
-        if( shutdownSignalDetected ) return;
         // Slow this loop down just a bit!
         ThreadedWorker::threadSleep( MAINLOOP_SLEEP_MSECS );
 
@@ -194,12 +176,11 @@ void DivisibleConsumer::mainLoop() {
 
 
 /**************************************************************************/
-void DivisibleConsumer::doConsumerThing()
+void DivisibleConsumer::processConsumerQueue( std::string *pString )
 {
     char results[CONSUMER_RESULTS_BUFFER_LEN] = { 0 };
     char logMsg[LOG_MSG_BUFFER_LEN] = { 0 };
 
-    std::string *pString = _pConsReceiverMch->dequeueMessage();
     if( pString != NULL ) {
         if( LWCCGrammar::isMessageType( pString, LWGMR_PRODUCER ) ) {
             // Got a good PRODUCER message - consume it!
@@ -217,7 +198,7 @@ void DivisibleConsumer::doConsumerThing()
                               << ", new consumer result: \n" << results << std::endl;
 #endif
 
-                    handleConsumerProcessResults( results );
+                    handleConsumerOutput( results );
                 } // End if number > 0
                 
             } // End if not-null
@@ -234,10 +215,39 @@ void DivisibleConsumer::doConsumerThing()
 } // End doConsumeThing()
 
 /**************************************************************************/
-void DivisibleConsumer::handleConsumerProcessResults( const char * results )
+void DivisibleConsumer::handleConsumerOutput( const char * results )
 {
     // Choice of what to do (like send to another MsgCommHdlr) -
     // here, we'll just output to stdout
     std::cout << LWGMR_CP_RESULTS << results << std::endl;
 
 } // End handleConsumerProcessResults(...)
+
+
+/**************************************************************************/
+bool DivisibleConsumer::processLwccQueue( std::string *pString )
+{
+    bool shutdownSignalDetected = false;
+    if( NULL != pString ) {
+
+        // We got a message from the receiver thread
+
+        if( LWCCGrammar::isMessageType( pString, LWGMR_SHUTDOWN ) ) {
+
+#ifdef DEBUG_DIVISIBLE
+            std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
+                      << " received shutdown msg" << ", on thread "
+                      << MY_TID << std::endl;
+#endif
+
+            // Shutdown has been signaled
+            shutdownSignalDetected = true;
+        }
+        // the queue, you are responsible for its memory -
+        delete pString;
+
+    }
+    return shutdownSignalDetected;
+
+} // End processLwccQueue(...)
+

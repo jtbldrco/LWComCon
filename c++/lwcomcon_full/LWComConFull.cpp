@@ -193,14 +193,3 @@ void LWComConFull::mainLoop() {
 
 } // End mainLoop(...)
 
-
-/*************************************************************************/
-void LWComConFull::signalShutdown( bool flag ) {
-    _shutdownSignaled = flag;
-} // End signalShutdown(...)
-
-
-/*************************************************************************/
-bool LWComConFull::isShutdownSignaled() const{
-    return _shutdownSignaled;
-}

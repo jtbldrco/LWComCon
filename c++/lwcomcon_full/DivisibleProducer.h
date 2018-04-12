@@ -44,7 +44,7 @@ public:
     virtual ~DivisibleProducer();
 
     void go(); // How object is put into motion
-    void doProducerThing();
+    void produceWorkOutput();
 
 protected:
 

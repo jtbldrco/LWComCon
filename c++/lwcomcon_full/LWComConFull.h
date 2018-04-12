@@ -49,8 +49,6 @@ public:
     virtual ~LWComConFull();
 
     void go();
-    void signalShutdown( bool flag );
-    bool isShutdownSignaled() const;
 
 protected:
 
@@ -70,8 +68,6 @@ private:
     const int _pport;
     const std::string _chost;
     const int _cport;
-
-    bool _shutdownSignaled;
 
 }; // End class LWComConFull
 

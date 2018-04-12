@@ -62,7 +62,7 @@ fi
 if [ "$1" == "prod" ] ; then
 
     # DivProd has a receiver (from lwcc), and a sender (to con) msg hdlr - 
-    # usage: ./DivisibleProducer <listener_host_ifc> <listener_host_port>
+    # usage: ./DivisibleProducer <lwcc_host_list_ifc> <lwcc_host_list_port>
     #                            <consumer_dest_host_ifc> <consumer_dest_host_port>
 
     # 'Push to backgroud' allows shell access
@@ -74,7 +74,7 @@ if [ "$1" == "con" ] ; then
 
     # DivCon has a receiver (from lwcc), and a receiver (from prod) msg hdlr - 
     # usage: ./DivisibleConsumer <lwcc_host_list_ifc> <lwcc_host_list_port>
-    #                            <cons_list_host_ifc> <cons_list_host_port>
+    #                            <prod_host_list_ifc> <prod_host_list_port>
 
     # 'Push to backgroud' allows shell access
     ./DivisibleConsumer $CON_L_HOST $CON_L_PORT $CON_P_HOST $CON_P_PORT  &

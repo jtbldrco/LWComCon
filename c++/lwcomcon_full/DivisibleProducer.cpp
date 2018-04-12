@@ -62,16 +62,21 @@ int main( const int argc, const char *argv[] ) {
 } // End main(...)
 
 
-#define MAINLOOP_SLEEP_MSECS 2500
+#define MAINLOOP_SLEEP_MSECS 5000
 #define LOG_MSG_BUFFER_LEN 256
 #define CONSUMER_RESULTS_BUFFER_LEN 256
 
 
 // These values result in generated random numbers of
-// [50000..100000].  See doProducerThing().
-#define PRODUCER_BASE 25000
-#define PRODUCER_LOWER_ADD 25000
-#define PRODUCER_UPPER_ADD 50000
+// [50000..100000].  See produceWorkOutput().
+// #define PRODUCER_BASE 25000
+// #define PRODUCER_LOWER_ADD 25000
+// #define PRODUCER_UPPER_ADD 50000
+
+// [20000..40000]
+#define PRODUCER_BASE 10000
+#define PRODUCER_LOWER_ADD 10000
+#define PRODUCER_UPPER_ADD 30000
 
 /**************************************************************************
  * DivisibleProducer implementation contains MsgCommHdlr's for
@@ -172,26 +177,10 @@ void DivisibleProducer::mainLoop() {
         ThreadedWorker::threadSleep( 3000 );
 #endif
 
-#ifdef DEBUG_DIVISIBLE_EXTREME
-        std::cout << "PRODUCER THING COMING !!!!" << std::endl;
-        std::cout << "PRODUCER THING COMING !!!!" << std::endl;
-        std::cout << "PRODUCER THING COMING !!!!" << std::endl;
-        std::cout << "PRODUCER THING COMING !!!!" << std::endl;
-        std::cout << "PRODUCER THING COMING !!!!" << std::endl;
-#endif
-
         // Do a new producer cycle - this handles all Producer
         // work-product 'creation' and also enqueuing on the
         // sender MsgCommHdlr to be sent along to Consumer.
-        doProducerThing();
-
-#ifdef DEBUG_DIVISIBLE_EXTREME
-        std::cout << "PRODUCER THING DONE !!!!" << std::endl;
-        std::cout << "PRODUCER THING DONE !!!!" << std::endl;
-        std::cout << "PRODUCER THING DONE !!!!" << std::endl;
-        std::cout << "PRODUCER THING DONE !!!!" << std::endl;
-        std::cout << "PRODUCER THING DONE !!!!" << std::endl;
-#endif
+        produceWorkOutput();
 
         // Next, read from receiver (for shutdown msg)
 
@@ -234,7 +223,7 @@ void DivisibleProducer::mainLoop() {
 
 
 /**************************************************************************/
-void DivisibleProducer::doProducerThing() {
+void DivisibleProducer::produceWorkOutput() {
 
     int genResult = do_rand_gen( PRODUCER_BASE, PRODUCER_LOWER_ADD,
                                  PRODUCER_UPPER_ADD );
@@ -249,7 +238,9 @@ void DivisibleProducer::doProducerThing() {
         std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
                   << ", new work product: " << *pString << ", on thread " << MY_TID << std::endl;
 #endif
-
     _pSenderMch->enqueueMessage( pString );
 
-} // End doProducerThing()
+    // Show work product on console ???
+    std::cout << *pString << std::endl;
+
+} // End produceWorkOutput()

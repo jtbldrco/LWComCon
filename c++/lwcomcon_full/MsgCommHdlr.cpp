@@ -281,8 +281,17 @@ void MsgCommHdlr::mainLoop() {
                 continue;
 
             } else {
+   
+                while( receiverSockStruct->csd == 0 ) {
+                    listenForClientConnection( receiverSockStruct );
+                    if( ThreadedWorker::isShutdownSignaled() ) {
+                        // Close socket, free memory
+                        sock_struct_destroy( receiverSockStruct ); 
+                        return;
+                    }
+                } // End while(...)
 
-                // Listener socket is properly set up, loop on receiving
+                // Client socket is properly set up, loop on receiving
                 while( true ) {
 
 #ifdef DEBUG_MSGCOMMHDLR
@@ -352,9 +361,15 @@ sock_struct_t * MsgCommHdlr::doSendEnqueuedMessage( sock_struct_t * s ) {
 #endif
 
     // We're a sender - any messages on the queue to send?
-
     std::string* pMessage = _ptrQueue.deQueueElementPtr();
     if( pMessage == NULL ) {
+
+#ifdef DEBUG_MSGCOMMHDLR
+        std::cout << "deQueue effort returned NULL in "
+                  <<  __PRETTY_FUNCTION__ << ", object " << _instanceName
+                  << ", on thread " << MY_TID << std::endl;
+#endif
+
         s->result = MSH_MESSAGE_NOT_SENT;
         return s;
     }
@@ -367,6 +382,12 @@ sock_struct_t * MsgCommHdlr::doSendEnqueuedMessage( sock_struct_t * s ) {
 
     bool awaitAck = false;
     s = msg_sock_hdlr_send( s, pMessage->c_str(), awaitAck );
+
+#ifdef DEBUG_MSGCOMMHDLR
+    std::cout << "msg_sock_hdlr_send() result: " << MSH_DEFINE_NAME( s->result )
+              << ", in " <<  __PRETTY_FUNCTION__ << ", object " << _instanceName
+              << ", on thread " << MY_TID << std::endl;
+#endif
 
     if( s->result == MSH_MESSAGE_SENT ) {
         delete pMessage;
@@ -390,6 +411,18 @@ sock_struct_t * MsgCommHdlr::doReceiverSetup() {
     return msg_sock_hdlr_open_for_recv( s );
 
 } // End doReceiveSetup()
+
+
+/**************************************************************************
+ * Set up a msg_sock_hdlr client connection socket
+ */
+sock_struct_t *MsgCommHdlr::listenForClientConnection( sock_struct_t *s ) {
+
+    // No mutexing needed; this is a private method on a ThreadedWorker
+    // This will time out
+    return msg_sock_hdlr_listen( s, &_socketReadShutdownFlag );
+
+} // End listenForClientConnection(...)
                            
 
 /**************************************************************************
@@ -404,13 +437,6 @@ sock_struct_t *MsgCommHdlr::doRecvAndEnqueueMessage( sock_struct_t *s ) {
     std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
               << ", on thread " << MY_TID << std::endl;
 #endif
-
-    // No mutexing needed; this is a private method on a ThreadedWorker
-    // and _receiveBuf is dedicated to only a single 'receiver' function
-    s = msg_sock_hdlr_listen( s, &_socketReadShutdownFlag );
-    if( s->result != MSH_CLIENT_CONNECTED ) {
-        return s;
-    }
 
     memset( _receiveBuf, 0, RECV_MESSAGE_BUF_LEN );
     bool sendAck = false;

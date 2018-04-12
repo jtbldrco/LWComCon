@@ -54,9 +54,9 @@ private:
     MsgCommHdlr *_pConsReceiverMch;
 
     void mainLoop();
-    void doConsumerThing();
-
-    void handleConsumerProcessResults( const char * results );
+    void processConsumerQueue( std::string *pString );
+    bool processLwccQueue( std::string *pString );
+    void handleConsumerOutput( const char * results );
 
     std::string _lwcchost;
     int _lwccport;
