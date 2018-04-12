@@ -24,6 +24,7 @@
 
 #include "LWComConFull.h"
 #include "MsgCommHdlr.h"
+#include "ComConGrammar.h"
 
 #include <string>
 
@@ -88,15 +89,89 @@ LWComConFull::~LWComConFull()
 /*************************************************************************/
 void LWComConFull::go() {
     
-    mch_sender_con.go();
-    mch_sender_prod.go();
-    mch_receiver.go();
+    _pSenderToCon->go();
+    _pSenderToProd->go();
+    _pListner->go();
 
-    mch_sender_prod.join();
-    mch_receiver.join();
-    mch_sender_con.join();
+    mainLoop();
+
+    _pSenderToCon->join();
+    _pSenderToProd->join();
+    _pListner->join();
 
 } // End go()
+
+
+/*************************************************************************/
+void LWComConFull::mainLoop() {
+
+#ifdef DEBUG
+    std::cout << "Entered LWComConFull::mainLoop()." << std::endl;
+#endif
+
+    // Do dashboardy things here - like take requests to shutdown
+    // other triad processes.
+
+    std::string *pShutdownMsg = new std::string( GMR_SHUTDOWN );
+
+    while( true ) {
+
+        std::string response;
+        int i;
+
+        std::cout << "Enter 1 to shutdown Producer," << std::endl;
+        std::cout << "Enter 2 to shutdown Consumer," << std::endl;
+        std::cout << "Enter 3 to shutdown LWComCon (this app)," << std::endl;
+        std::cout << "Enter 4 to shutdown all three: " ;
+
+        std::cin >> response;
+        
+        if( response.compare("1") ) i = 1;        
+        if( response.compare("2") ) i = 2;        
+        if( response.compare("3") ) i = 3;        
+        if( response.compare("4") ) i = 4;        
+
+        bool R1 = false;
+        bool R2 = false;
+        bool R3 = false;
+        bool R4 = false;
+        switch( i ) {
+    
+        case 1:
+            R1 = true;
+            break;
+    
+        case 2:
+            R2 = true;
+            break;
+    
+        case 3:
+            R3 = true;
+            break;
+    
+        case 4:
+            R1 = true;
+            R2 = true;
+            R3 = true;
+            R4 = true;
+            break;
+
+        }
+        if( R1 ) _pSenderToProd->enqueueMessage( pShutdownMsg );
+        if( R2 ) _pSenderToCon->enqueueMessage( pShutdownMsg );
+        if( R3 ) {
+            // Can't be in a hurry here ...
+            if( R4 ) ThreadedWorker::threadSleep( 10000 );
+            _pSenderToProd->signalShutdown( true );
+            _pSenderToCon->signalShutdown( true );
+            _pListner->signalShutdown( true );
+            return; 
+        }
+    
+    } // End while()
+
+
+} // End mainLoop(...)
 
 
 /*************************************************************************/

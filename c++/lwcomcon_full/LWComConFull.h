@@ -57,6 +57,8 @@ protected:
 
 private:
 
+    void mainLoop();
+
     MsgCommHdlr *_pSenderToProd;
     MsgCommHdlr *_pSenderToCon;
     MsgCommHdlr *_pListner;

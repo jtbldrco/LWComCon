@@ -53,8 +53,9 @@ if [ "$1" == "lwcc" ] ; then
     #                   <producer_host_ifc> <producer_host_port>
     #                   <consumer_host_ifc> <consumer_host_port>
 
-    # 'Push to background' allows shell access
-    ./LWComConFull $LW_HOST $LW_PORT $PROD_L_HOST $PROD_L_PORT $CON_L_HOST $CON_L_PORT  &
+    # DO NOT 'Push to background' on this one - won't be able
+    # to enter quit choices (1-4)
+    ./LWComConFull $LW_HOST $LW_PORT $PROD_L_HOST $PROD_L_PORT $CON_L_HOST $CON_L_PORT
     exit 0
 fi
 

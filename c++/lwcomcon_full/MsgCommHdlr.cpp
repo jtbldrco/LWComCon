@@ -312,7 +312,7 @@ void MsgCommHdlr::mainLoop() {
                     if( isShutdownSignaled() ) {
 #ifdef DEBUG_MSGCOMMHDLR
                             std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
-                                      << "recv timed out - shutdown signaled, on thread " << MY_TID << std::endl;
+                                      << ", recv timed out - shutdown signaled, on thread " << MY_TID << std::endl;
 #endif
 
                         // Close socket, free memory
