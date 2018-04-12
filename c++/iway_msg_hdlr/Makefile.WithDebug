@@ -30,6 +30,8 @@ LIB_DIR=.
 ##### CPPFLAGS += -DDEBUG -DDEBUG_MSH
 CPPFLAGS += -DDEBUG -DDEBUG_MSH
 
+##### Used in Sample DEBUG Output: CPPFLAGS += -DDEBUG_MSH_RETIRED
+
 # Enable test case: 15-sec sleep delay between
 # client socket connect and socket send
 # Can induce return code MSH_MESSAGE_RECV_TIMEOUT

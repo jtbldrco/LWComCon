@@ -1,5 +1,13 @@
 Script started on 2018-04-09 10:57:01-0600
 
+*************************************************************
+NOTE: THis output was generated with the additional Makefile
+CPPFLAGS symbol in Makefile.WithDebug enabled -
+
+   ### CPPFLAGS += -DDEBUG_MSH_RETIRED
+
+*************************************************************
+
 $ make clean; make -f Makefile.WithDebug
 
 $ ./run_test2_demo.sh
