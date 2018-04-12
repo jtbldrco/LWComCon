@@ -12,8 +12,9 @@ MAIN_PROG3 = DivisibleProducer
 
 TEST_PROG1 = MsgCommHdlrTestSender
 TEST_PROG2 = MsgCommHdlrTestReceiver
+TEST_PROG3 = LWCCGrammarTest
 
-PROGRAMNAMES = $(MAIN_PROG1) $(MAIN_PROG2) $(MAIN_PROG3)  $(TEST_PROG1) $(TEST_PROG2)
+PROGRAMNAMES = $(MAIN_PROG1) $(MAIN_PROG2) $(MAIN_PROG3)  $(TEST_PROG1) $(TEST_PROG2) $(TEST_PROG3)
 
 ## TODO - create library of ThreadedWorker and ThreadMapper, then access that
 ## from here; add include paths to pick up the headers for those classes
@@ -24,6 +25,7 @@ MAIN_PROG3_OBJS = DivisibleProducer.o MsgCommHdlr.o ThreadedWorker.o ThreadMappe
 
 TEST_PROG1_OBJS = MsgCommHdlrTestSender.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
 TEST_PROG2_OBJS = MsgCommHdlrTestReceiver.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
+TEST_PROG3_OBJS = LWCCGrammarTest.o
 
 # Compilers
 CC = gcc
@@ -83,6 +85,9 @@ $(TEST_PROG1):	$(TEST_PROG1_OBJS)
 $(TEST_PROG2):	$(TEST_PROG2_OBJS)
 	$(CXX) -o $@ $^ $(PN_LDFLAGS)
 
+$(TEST_PROG3):	$(TEST_PROG3_OBJS)
+	$(CXX) -o $@ $^ $(PN_LDFLAGS)
+
 %.o:	$(PROJECT_ROOT)%.cpp
 	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) $< -o $@
 
@@ -90,5 +95,5 @@ $(TEST_PROG2):	$(TEST_PROG2_OBJS)
 	$(CXX) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
 
 clean:
-	rm -fr $(PROGRAMNAMES) $(MAIN_PROG1_OBJS) $(MAIN_PROG2_OBJS) $(MAIN_PROG3_OBJS) $(TEST_PROG1_OBJS) $(TEST_PROG2_OBJS)
+	rm -fr $(PROGRAMNAMES) $(MAIN_PROG1_OBJS) $(MAIN_PROG2_OBJS) $(MAIN_PROG3_OBJS) $(TEST_PROG1_OBJS) $(TEST_PROG2_OBJS) $(TEST_PROG3_OBJS)
 

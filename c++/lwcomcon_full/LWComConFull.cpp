@@ -24,7 +24,7 @@
 
 #include "LWComConFull.h"
 #include "MsgCommHdlr.h"
-#include "ComConGrammar.h"
+#include "LWCCGrammar.h"
 
 #include <string>
 
@@ -168,14 +168,14 @@ void LWComConFull::mainLoop() {
         if( R1 ) {
             // This string will be popped, processed and
             // then deleted by the MsgCommHdlr
-            pShutdownMsg = new std::string( GMR_SHUTDOWN );
+            pShutdownMsg = new std::string( LWGMR_SHUTDOWN );
             _pSenderToProd->enqueueMessage( pShutdownMsg );
         }
 
         if( R2 ) {
             // This string will be popped, processed and
             // then deleted by the MsgCommHdlr
-            pShutdownMsg = new std::string( GMR_SHUTDOWN );
+            pShutdownMsg = new std::string( LWGMR_SHUTDOWN );
             _pSenderToCon->enqueueMessage( pShutdownMsg );
         }
 

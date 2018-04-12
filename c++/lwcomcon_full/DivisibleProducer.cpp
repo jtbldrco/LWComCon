@@ -25,7 +25,7 @@
 #include "DivisibleProducer.h"
 #include "iway_logger.h"
 #include "simple_pc_funcs.h"
-#include "ComConGrammar.h"
+#include "LWCCGrammar.h"
 
 #include <iostream>
 #include <string>
@@ -217,7 +217,7 @@ void DivisibleProducer::mainLoop() {
             // We got a message from the receiver, only
             // looking for shutdown at this time
 
-            if( pMessage->compare( GMR_SHUTDOWN ) == 0 ) {
+            if( pMessage->compare( LWGMR_SHUTDOWN ) == 0 ) {
                 // Shutdown has been signaled
                 _pSenderMch->signalShutdown( true );
                 _pReceiverMch->signalShutdown( true );
@@ -253,7 +253,7 @@ void DivisibleProducer::doProducerThing() {
     // We must have a heap-based string to pass to the PtrQueue, also must
     // wrap it in the proper notation (CC_GRAM) for interpretation on the
     // other end.
-    std::string *pString = new std::string( GMR_PRODUCER +
+    std::string *pString = new std::string( LWGMR_PRODUCER +
                                             std::to_string( genResult ) );
 
 #ifdef DEBUG_DIVISIBLE

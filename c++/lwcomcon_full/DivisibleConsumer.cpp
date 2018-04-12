@@ -25,7 +25,7 @@
 #include "DivisibleConsumer.h"
 #include "iway_logger.h"
 #include "simple_pc_funcs.h"
-#include "ComConGrammar.h"
+#include "LWCCGrammar.h"
 
 #include <iostream>
 #include <string>
@@ -177,7 +177,7 @@ void DivisibleConsumer::mainLoop() {
 
             // We got a message from the receiver thread
 
-            if( pMessage->compare( GMR_SHUTDOWN ) == 0 ) {
+            if( pMessage->compare( LWGMR_SHUTDOWN ) == 0 ) {
 
 #ifdef DEBUG_DIVISIBLE
                 std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
@@ -213,7 +213,7 @@ void DivisibleConsumer::doConsumerThing()
 
     std::string *pString = _pConsReceiverMch->dequeueMessage();
     if( pString != NULL ) {
-        if( pString->find( GMR_PRODUCER ) != std::string::npos ) {
+        if( pString->find( LWGMR_PRODUCER ) != std::string::npos ) {
             // Got a good message from the producer side - 
             // consume it!
 
