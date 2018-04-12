@@ -1,4 +1,5 @@
-# Lightweight C++ Command/Control [#LWComCon] <img style="float: right;" src="../images/iwaytechnology284x60.gif" />
+# #LWComCon <img style="float: right;" src="../images/iwaytechnology284x60.gif" />
+
 ## A Multi-Threaded, Multi-Process, Network-based</br>Command/Control Design Pattern in C++
 
 MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
