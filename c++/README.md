@@ -4,7 +4,7 @@
 
 MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
 
-Status: Work In Progress ...
+**Status: Work In Progress ...**
 
 This C++ repository folder contains materials to introduce and demonstrate a TCP network-based, Inter-process,
 Multi-threaded Command and Control Methodology in C++.  Included are numerous additional utility design patterns such as -
