@@ -69,7 +69,15 @@ LWComConFull::LWComConFull( const char * instanceName,
      _lhost( lhost ), _lport( lport ),
      _phost( phost ), _pport( pport ),
      _chost( chost ), _cport( cport )
-{} // End LWComConFull(...)
+{
+    _pListner      = new MsgCommHdlr( "lwcc_mch_receiver", MCH_Function::receiver,
+                                      _lhost, _lport, 10, 10 );
+    _pSenderToProd = new MsgCommHdlr( "lwcc_mch_sender_to_prod", MCH_Function::sender,
+                                      _phost, _pport, 10, 10 );
+    _pSenderToCon  = new MsgCommHdlr( "lwcc_mch_sender_to_con", MCH_Function::sender,
+                                      _chost, _cport, 10, 10 );
+
+} // End LWComConFull(...)
 
 
 /*************************************************************************/
@@ -80,13 +88,6 @@ LWComConFull::~LWComConFull()
 /*************************************************************************/
 void LWComConFull::go() {
     
-    MsgCommHdlr mch_sender_prod( "lwcc_mch_sender_to_prod", MCH_Function::sender,
-                                 _phost, _pport, 10, 10 );
-    MsgCommHdlr mch_sender_con ( "lwcc_mch_sender_to_con", MCH_Function::sender,
-                                 _chost, _cport, 10, 10 );
-    MsgCommHdlr mch_receiver( "lwcc_mch_receiver", MCH_Function::receiver,
-                            _lhost, _lport, 10, 10 );
-
     mch_sender_con.go();
     mch_sender_prod.go();
     mch_receiver.go();

@@ -180,7 +180,9 @@ void DivisibleProducer::mainLoop() {
         std::cout << "PRODUCER THING COMING !!!!" << std::endl;
 #endif
 
-        // Do a new producer cycle
+        // Do a new producer cycle - this handles all Producer
+        // work-product 'creation' and also enqueuing on the
+        // sender MsgCommHdlr to be sent along to Consumer.
         doProducerThing();
 
 #ifdef DEBUG_DIVISIBLE_EXTREME
@@ -232,7 +234,8 @@ void DivisibleProducer::mainLoop() {
 /**************************************************************************/
 void DivisibleProducer::doProducerThing() {
 
-    int genResult = do_rand_gen( PRODUCER_BASE, PRODUCER_LOWER_ADD, PRODUCER_UPPER_ADD );
+    int genResult = do_rand_gen( PRODUCER_BASE, PRODUCER_LOWER_ADD,
+                                 PRODUCER_UPPER_ADD );
 
     // We must have a heap-based string to pass to the PtrQueue, also must
     // wrap it in the proper notation (CC_GRAM) for interpretation on the
@@ -242,8 +245,11 @@ void DivisibleProducer::doProducerThing() {
 
 #ifdef DEBUG_DIVISIBLE
         std::cout << "*********** ************* ********** ************* *********** " << std::endl;
+        std::cout << "*********** ************* ********** ************* *********** " << std::endl;
         std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName
                   << ", new string: " << *pString << ", on thread " << MY_TID << std::endl;
+        std::cout << "*********** ************* ********** ************* *********** " << std::endl;
+        std::cout << "*********** ************* ********** ************* *********** " << std::endl;
 #endif
 
     _pSenderMch->enqueueMessage( pString );

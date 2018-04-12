@@ -57,6 +57,10 @@ protected:
 
 private:
 
+    MsgCommHdlr *_pSenderToProd;
+    MsgCommHdlr *_pSenderToCon;
+    MsgCommHdlr *_pListner;
+
     const std::string _instanceName;
     const std::string _lhost;
     const int _lport;
