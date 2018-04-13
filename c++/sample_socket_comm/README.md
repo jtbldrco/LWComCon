@@ -9,7 +9,7 @@
 
 Also in this README (below) are simple networking testing and trouble-shooting techniques to be used in solving networking problems.
 
-Note also that another sockets communication example exists in this repository [over here](../iway_msg_hdlr) and deployed [over here](../lwcomcon_full) that differs in these important respects:
+Note also that another sockets communication example exists in this repository [over here](../iway_msg_hdlr/README.md) and deployed [over here](../lwcomcon_full/README.md) that differs in these important respects:
 
 - it has been stripped down to a lighter-weight form by handling message receives *in process* - that is, removing the server fork() behavior that handles concurrent client connections, 
 - further, it has been extended to support client connection-wait timeout detection with retry/return options,
