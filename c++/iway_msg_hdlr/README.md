@@ -1,6 +1,6 @@
-# iWay C/C++ Message Handler Library <img style="float: right;" src="../../images/iwaytechnology284x60.gif" />
+# iWay C/C++ Message Handler Library
 
-The iWay C/C++ message handler library is a fast and convenient way to support *character-string based* TCP Messaging between two processes - one (the receiver) listening for connections and the other (the sender) initiating such a connection.  This might be referred to as a Client-Server communication model but, in the present case, there is no actual *service* provided by one for another - hence the use of 'send/receive' terminology.  This subdirectory includes the following capabilities:
+<img align="right" src="../../images/iwaytechnology284x60.gif" /> The iWay C/C++ message handler library is a fast and convenient way to support *character-string based* TCP Messaging between two processes - one (the receiver) listening for connections and the other (the sender) initiating such a connection.  This might be referred to as a Client-Server communication model but, in the present case, there is no actual *service* provided by one for another - hence the use of 'send/receive' terminology.  This subdirectory includes the following capabilities:
 
 - a stripped down *in process* send-receive interface that removes the heavier-weight server fork() behavior (implemented here: [../sample_socket_comm/](../sample_socket_comm/) and can easily be run in its own ThreadedWorker class instance,
 - flexible support for optional connection-wait timeouts (in the listener socket) with both 'retry again' and 'return now' options,
