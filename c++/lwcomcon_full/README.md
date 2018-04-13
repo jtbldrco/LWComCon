@@ -1,4 +1,6 @@
-# C++ Lightweight Command/Control <img style="float: right;" src="../../images/iwaytechnology284x60.gif" />
+# C++ Lightweight Command/Control
+
+<img align="right" src="../../images/iwaytechnology284x60.gif" /> 
 
 ## Status: Work In Progress
 
