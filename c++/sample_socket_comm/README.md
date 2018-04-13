@@ -2,24 +2,25 @@
 
 <img align="right" src="../../images/iwaytechnology284x60.gif" /> This simple example is self-contained and complete including Server and Client applications.  This example focuses on the following interesting aspects of client-server socket communications:
 
-- the server handles any practical number of concurrent client connections because it forks a new child process to handle the network communications with each new client connection,
-- the client and server each complete round-trip communications (client sends, server receives, then, server responds and client receives),
-- the client-server communication can proceed over IPv4, or IPv6 protocols,
+- the server handles *multiple* (any practical number of) concurrent client connections because it forks a new child process to handle the network communications with each new client connection,
+- the client and server each execute a single, complete round-trip communication (client sends, server receives, then, server responds and client receives),
+- the client-server communication can proceed over IPv4, or IPv6 protocol versions,
 - both client and server correctly implement/demonstrate the technique to handle messages that exceed the receiver-side input buffer length by looping to capture successive sends until the message is fully sent. (A debug setting in the Makefile enables extra console output illustrating this process in-line (see output stmts in code.)
 
 Also in this README (below) are simple networking testing and trouble-shooting techniques to be used in solving networking problems.
 
-Note also that another sockets communication example exists in this repository [over here](../iway_msg_hdlr) that differs in these important respects:
+Note also that another sockets communication example exists in this repository [over here](../iway_msg_hdlr) and deployed [over here](../lwcomcon_full) that differs in these important respects:
 
-- it has been stripped down to handle message receives *in process* removing the server fork() behavior that handles concurrent client connections, 
+- it has been stripped down to a lighter-weight form by handling message receives *in process* - that is, removing the server fork() behavior that handles concurrent client connections, 
 - further, it has been extended to support client connection-wait timeout detection with retry/return options,
+- its header contains a socket-structure typedef with init, mgmt and destroy utilities for easy use,
 - its header file is wrapped with 'extern "C"' for simplified C++ access,
 - it's packaged in library form (static and shared) through updates to the Makefile,
 - C test programs exist in that location demonstrating client and server usage, both with, and without timeouts enabled.
 
-Also, the [OSP_Full C++ example](../osp_full) illustrates further the use of that above C library within a C++ application.  
+As noted above, the [LW ComCon C++ example](../lwcomcon_full) illustrates further the use of that above C library within a C++ application.  
 
-If you're generally familiar with socket communications, this example may seem mundane.  But you then might be a perfect candidate to drill-down into the comments on the 'end of send' client-server contract discussed in [server.cpp](./server.cpp).  Another point of interest might be that (as noted) this example actually illustrates properly executing multiple socket reads in order to get an entire message from the client whereas, too many examples take the shortcut of defining a read buffer 'big enough' that side-steps the task and technique entirely - by contrast, in this example, a 4-byte buffer is used to highlight the process -- to view that, search for ```rd_buf[4]``` in [./client.cpp](./client.cpp) and [./server.cpp](./server.cpp).
+If you're generally familiar with socket communications, this 'sample_socket_comm' example may seem mundane.  But you then might be a perfect candidate to drill-down into the comments on the 'end of send' client-server contract discussed in [server.cpp](./server.cpp).  Another point of interest might be that (as noted) this example actually illustrates properly executing multiple socket reads in order to get an entire message from the client whereas, too many examples take the shortcut of defining a read buffer 'big enough' that side-steps the task and technique entirely - by contrast, in this example, a 4-byte buffer is used to highlight the process -- to view that, search for ```rd_buf[4]``` in [./client.cpp](./client.cpp) and [./server.cpp](./server.cpp).
 
 Also, this example illustrates additional niffty features such as how to extract the actual IP address from a socket opened using a host's DNS name.  For example, (depending on your ```/etc/hosts``` content) you would get back its IP address when using mylabserver.example.com as shown here:
 
