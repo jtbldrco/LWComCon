@@ -50,6 +50,7 @@ extern "C" {
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include <time.h>
 #include <signal.h>
 
 // Requires C99 dialect
@@ -84,6 +85,9 @@ static inline char * MSH_DEFINE_NAME( const int value )
 
     case 105:
         return (char *)"MSH_MESSAGE_RECV_TIMEOUT";
+
+    case 106:
+        return (char *)"MSH_MESSAGE_NOT_SENT_NULL";
 
     case 200:
         return (char *)"MSH_INVALID_SOCKSTRUCT";
@@ -127,6 +131,9 @@ static inline char * MSH_DEFINE_NAME( const int value )
     case 303:
         return (char *)"MSH_CONNECT_TIMEOUT";
 
+    case 304:
+        return (char *)"MSH_CLIENT_DISCONNECTED";
+
     default:
         return (char *)"MSH_VALUE_UNKNOWN";
 
@@ -142,6 +149,7 @@ static inline char * MSH_DEFINE_NAME( const int value )
 #define MSH_MESSAGE_NOT_RECVD    103
 #define MSH_MESSAGE_RECVD_OVERFLOW 104
 #define MSH_MESSAGE_RECV_TIMEOUT 105
+#define MSH_MESSAGE_NOT_SENT_NULL 106
 
 #define MSH_INVALID_SOCKSTRUCT   200
 #define MSH_ERROR_ILLEGAL_INPUT  201
@@ -158,9 +166,17 @@ static inline char * MSH_DEFINE_NAME( const int value )
 #define MSH_LISTENER_CREATED     301
 #define MSH_CLIENT_CONNECTED     302
 #define MSH_CONNECT_TIMEOUT      303
+#define MSH_CLIENT_DISCONNECTED  304
 
-// Listener Socke
+///////////////////////////////////////////////////////////
+// The following are the sock_struct_t typedef and all
+// the utilities to create, manipulate, and destroy
+// it as utilized by msg_sock_hdlr.c.
+///////////////////////////////////////////////////////////
+
+// Shared by Listener and Sender endpoints.
 typedef struct sock_struct_t { 
+    int ts;     // To the second timestamp = creation id
     char *host; // Host IP/Domain-name (unused for listeners)
     int port;   // Listener port num
     int lsd;    // Listener Socket Descriptor (server only)
@@ -175,6 +191,7 @@ typedef struct sock_struct_t {
 static inline void sock_struct_dump( const sock_struct_t *s )
 {
     if( s == NULL ) return;
+    printf( "Time: %d\n", s->ts );
     if( s->host != NULL ) 
         printf( "Host: %s\n", s->host );
     else
@@ -189,8 +206,11 @@ static inline void sock_struct_dump( const sock_struct_t *s )
 }
 
 
-// Function sock_struct_init_recv does not use, manage or delete memory
+// Function sock_struct_init_recv does not  manage or delete memory
 // pointed to by host.  Caller is responsible for that memory.
+// (see *host in particular - not stored herein or deleted).
+// Caller is responsible for calling sock_struct_destroy(s) on this
+// returned object when the struct is no longer needed or used.
 static inline sock_struct_t *sock_struct_init_recv( const char *host,
                                                     const int port, 
                                                     const int lto,
@@ -198,6 +218,7 @@ static inline sock_struct_t *sock_struct_init_recv( const char *host,
 {
     sock_struct_t *s = (sock_struct_t*)malloc( sizeof(sock_struct_t) );
     memset( s, 0, sizeof(sock_struct_t) );
+    s->ts = time(0);
     if( host == NULL ) {
         s->host = NULL;
     } else {
@@ -229,8 +250,9 @@ static inline void sock_struct_close_client( sock_struct_t *s )
     }
 }
 
-// 'With Time-Out' (_wto) form actually does two things - first, the server (listener) is
-// capable of listening for a client connection with periodic checks to see if there
+// Caller of either sock_struct_init_recv(...) or
+// sock_struct_init_send(...) must call this function
+// at its end of life to free the contained memory. 
 static inline void sock_struct_destroy( sock_struct_t *s )
 {
     if( s == NULL ) return;
@@ -246,16 +268,36 @@ static inline void sock_struct_destroy( sock_struct_t *s )
     free( s );
 }
 
-// 'With Time-Out' (_wto) form actually does two things - first, the server (listener) is
-// capable of listening for a client connection with periodic checks to see if there
-// has been an externally set flag indicating that this server 'listening' should be
-// shut down (and the call return).  This periodic check will occur every 
-// socket_listen_timeout_secs.  Second, once a client connects, if its message send
-// gets delayed, the WTO function can timeout that read operation and return with 
-// appropriate error code.  Each of these two timeout durations can be individually set
-// (in units of seconds). A value of zero (0) disables that timeout.
-// Finally, if the client read times out, the state of the receive buffer is undefined.
-// Check the function return value against the results as defined above.
+// Ignore EPIPE errors on disconnected sockets - this call
+// affects all sockets on all threads in a process.
+// (see sigaction man page)
+static inline void set_sigaction_ign_sigpipe()
+{
+    struct sigaction action_on_sigpipe;
+    int result;
+    memset( &action_on_sigpipe, 0, sizeof(action_on_sigpipe) );
+    action_on_sigpipe.sa_handler = SIG_IGN;
+    action_on_sigpipe.sa_flags = SA_RESTART;
+    result = sigaction( SIGPIPE, &action_on_sigpipe, NULL );
+    if( result )
+        fprintf( stderr, "set_sigaction_ign_sigpipe failed." );
+}
+
+// With the timeout feature, the 'server-side' (listener) socket
+// is capable of listening for a client connection with periodic
+// checks to see if there has been an externally set flag
+// indicating that this server 'listening' should be shut down
+// (and the call return).  This periodic check will occur every
+// socket_listen_timeout_secs.  Once a client connects, if its
+// message send gets delayed, the send function can timeout that
+// read operation and return with appropriate error code.  Each of
+// these two timeout durations can be individually set (in units
+// of seconds).  A value of zero (0) disables that timeout.
+// Finally, if the client read times out, the state of the receive
+// buffer is undefined (depending on how bytes arrived from the
+// sender, there could be some content there but it would be
+// impossible to determine its value herein).  Check the function
+// return value against the results as defined above.
 sock_struct_t *msg_sock_hdlr_open_for_recv( sock_struct_t *sock_struct );
 sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct, int *shutdownFlag );
 sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct, char *message_buf,
@@ -266,6 +308,8 @@ sock_struct_t *msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct );
 sock_struct_t *msg_sock_hdlr_send( sock_struct_t *sock_struct,
                                    const char *message_buf,
                                    const bool awaitAck  );
+
+bool check_for_broken_socket( sock_struct_t * sock_struct );
 
 //////////////////////////////////////////////////////////////////
 #ifdef __cplusplus

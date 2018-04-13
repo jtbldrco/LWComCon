@@ -34,7 +34,8 @@
 #include <iostream>
 
 #define MAINLOOP_SOCK_SETUP_SLEEP_MSECS 2500
-#define MAINLOOP_SEND_LOOP_SLEEP_MSECS 2000
+#define MAINLOOP_SEND_LOOP_SLEEP_MSECS 1500
+#define MAINLOOP_READ_LOOP_SLEEP_MSECS 1500
 
 static std::string twPreamble( "ThreadedWorker_of_" );
 static std::string mpqPreamble( "PtrQueue_of_" );
@@ -181,6 +182,12 @@ void MsgCommHdlr::mainLoop() {
             // Set up the sender socket once
             senderSockStruct = doSenderSetup();
 
+#ifdef DEBUG_MSGCOMMHDLR
+                std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
+                          << ", senderSetup struct:" << std::endl;
+                sock_struct_dump( senderSockStruct );
+#endif
+
             if( senderSockStruct->result != MSH_CLIENT_CONNECTED ) {
 
 #ifdef DEBUG_MSGCOMMHDLR
@@ -217,7 +224,42 @@ void MsgCommHdlr::mainLoop() {
 #endif
 
                     // Now send messages out that already set up socket
-                    doSendEnqueuedMessage( senderSockStruct );
+                    senderSockStruct = doSendEnqueuedMessage( senderSockStruct );
+
+#ifdef DEBUG_MSGCOMMHDLR
+                    std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
+                              << ", after doSend EnqueuedMsg struct:" << std::endl;
+                    sock_struct_dump( senderSockStruct );
+#endif
+
+                    // Check what happend in the send
+                    if( senderSockStruct->result == MSH_ERROR_ACK_RECV_FAIL ||
+                        senderSockStruct->result == MSH_CLIENT_DISCONNECTED ) {
+
+                        // Have senderSockStruct->result == MSH_ERROR_ACK_RECV_FAIL
+                        // ... could also be a broken socket issue
+                        //
+                        // Break out of send while-loop and re-enter sender setup
+
+#ifdef DEBUG_MSGCOMMHDLR
+                        std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
+                                  << ", send failure: " << MSH_DEFINE_NAME( senderSockStruct->result )
+                                  << ", on thread " << MY_TID << std::endl;
+#endif
+                        break; // Breaks out of sender while-loop to recreate sender socket
+                    }
+
+                    if( senderSockStruct->result != MSH_MESSAGE_SENT ) {
+ 
+                        // Maybe there was nothing queued up to send, maybe
+                        // no client ready yet - slow this down just a bit
+#ifdef DEBUG_MSGCOMMHDLR
+                        std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
+                                  << ", doing #define send-loop slow-down, on thread " << MY_TID << std::endl;
+#endif
+
+                        ThreadedWorker::threadSleep( MAINLOOP_SEND_LOOP_SLEEP_MSECS );
+                    }
 
                     if( ThreadedWorker::isShutdownSignaled() ) {
 #ifdef DEBUG_MSGCOMMHDLR
@@ -230,19 +272,11 @@ void MsgCommHdlr::mainLoop() {
                         return;
                     }
 
-                    // Slow this down just a bit
-#ifdef DEBUG_MSGCOMMHDLR
-                    std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
-                              << ", doing #define send-loop slow-down, on thread " << MY_TID << std::endl;
-#endif
-
-                    ThreadedWorker::threadSleep( MAINLOOP_SEND_LOOP_SLEEP_MSECS );
-
                 } // End while(true) ... keep sending
 
             } // End else sender socket was set up
 
-        } // End sender outter while()
+        } // End sender outer while()
 
     case receiver:
 
@@ -257,6 +291,12 @@ void MsgCommHdlr::mainLoop() {
 
             receiverSockStruct = doReceiverSetup();
 
+#ifdef DEBUG_MSGCOMMHDLR
+            std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
+                      << ", after doReceiverSetup(), struct:" << std::endl;
+            sock_struct_dump( receiverSockStruct );
+#endif
+                    
             if( receiverSockStruct->result != MSH_LISTENER_CREATED ) {
 
 #ifdef DEBUG_MSGCOMMHDLR
@@ -284,6 +324,13 @@ void MsgCommHdlr::mainLoop() {
    
                 while( receiverSockStruct->csd == 0 ) {
                     listenForClientConnection( receiverSockStruct );
+
+#ifdef DEBUG_MSGCOMMHDLR
+                    std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
+                              << ", after doReceiverSetup(), struct:" << std::endl;
+                    sock_struct_dump( receiverSockStruct );
+#endif
+                    
                     if( ThreadedWorker::isShutdownSignaled() ) {
                         // Close socket, free memory
                         sock_struct_destroy( receiverSockStruct ); 
@@ -301,7 +348,45 @@ void MsgCommHdlr::mainLoop() {
                               << ",on thread " << MY_TID << std::endl;
 #endif
 
-                    doRecvAndEnqueueMessage( receiverSockStruct );
+                    receiverSockStruct = doRecvAndEnqueueMessage( receiverSockStruct );
+
+                    if( receiverSockStruct->result != MSH_MESSAGE_RECVD ) {
+
+#ifdef DEBUG_MSGCOMMHDLR
+                        std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
+                                  << "no msg recvd, . Sleep, try again." << std::endl;
+#endif
+
+                        ThreadedWorker::threadSleep( MAINLOOP_READ_LOOP_SLEEP_MSECS );
+                    }
+
+#ifdef DEBUG_MSGCOMMHDLR
+                    if( receiverSockStruct->result == MSH_MESSAGE_RECV_TIMEOUT ) {
+                        std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
+                                  << ", recv timed out, on thread " << MY_TID << std::endl;
+                    }
+#endif
+
+                    // Check what happend in the recv
+                    if( receiverSockStruct->result != MSH_MESSAGE_RECVD && 
+                        receiverSockStruct->result != MSH_MESSAGE_RECV_TIMEOUT &&
+                        receiverSockStruct->result != MSH_MESSAGE_NOT_RECVD ) {
+
+                        // May be - 
+                        //    receiverSockStruct->result == MSH_MESSAGE_RECVD_OVERFLOW
+                        //    receiverSockStruct->result == MSH_CLIENT_DISCONNECTED
+                        //    receiverSockStruct->result == MSH_ERROR_ACK_SEND_FAIL
+                        // ... could also be a sock_struct issue
+                        //
+                        // Break out of recv while-loop and re-enter listener setup
+
+#ifdef DEBUG_MSGCOMMHDLR
+                        std::cout << "In " <<  __PRETTY_FUNCTION__ << " object " << _instanceName
+                                  << ", recv failure: " << MSH_DEFINE_NAME( receiverSockStruct->result )
+                                  << ", on thread " << MY_TID << std::endl;
+#endif
+                        break; // Breaks out of recv while-loop to recreate listener socket
+                    }
 
                     if( ThreadedWorker::isShutdownSignaled() ) {
 
@@ -380,7 +465,10 @@ sock_struct_t * MsgCommHdlr::doSendEnqueuedMessage( sock_struct_t * s ) {
               << ", on thread " << MY_TID << std::endl;
 #endif
 
-    bool awaitAck = false;
+    // No global control for this but we need it on because if the
+    // connection is 'lost' (far-endpoint process restarts, whatever)
+    // these acks will fail and cause an upstream reconnect to happen.
+    bool awaitAck = true;
     s = msg_sock_hdlr_send( s, pMessage->c_str(), awaitAck );
 
 #ifdef DEBUG_MSGCOMMHDLR
@@ -394,6 +482,14 @@ sock_struct_t * MsgCommHdlr::doSendEnqueuedMessage( sock_struct_t * s ) {
     } else {
         // The message send operation reports failure.  Hmmm.  Let's
         // push that message BACK onto the queue for a later retry.
+
+#ifdef DEBUG_MSGCOMMHDLR_REQUEUE
+    std::cout << "Re-enqueuing msg: " << *pMessage
+              << ", msg_sock_hdlr_send() result: " << MSH_DEFINE_NAME( s->result )
+              << ", in " <<  __PRETTY_FUNCTION__ << ", object " << _instanceName
+              << ", on thread " << MY_TID << std::endl;
+#endif
+
         _ptrQueue.enQueueElementPtr( pMessage );
     } 
  
@@ -439,7 +535,11 @@ sock_struct_t *MsgCommHdlr::doRecvAndEnqueueMessage( sock_struct_t *s ) {
 #endif
 
     memset( _receiveBuf, 0, RECV_MESSAGE_BUF_LEN );
-    bool sendAck = false;
+
+    // No global control for this but we need it on because if the
+    // connection is 'lost' (far-endpoint process restarts, whatever)
+    // these acks will fail and cause an upstream reconnect to happen.
+    bool sendAck = true;
     s = msg_sock_hdlr_recv( s, _receiveBuf, RECV_MESSAGE_BUF_LEN,
                             &_socketReadShutdownFlag, sendAck );
     if( s->result == MSH_MESSAGE_RECVD ) {
@@ -488,4 +588,20 @@ void MsgCommHdlr::enqueueMessage( std::string *msg ) {
     _ptrQueue.enQueueElementPtr( msg );
 
 } // End enqueueMessage(...)
+
+
+/**************************************************************************
+ * Externally callable
+ */
+int MsgCommHdlr::queueSize() {
+
+#ifdef DEBUG_MSGCOMMHDLR
+    std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
+              << " queueSize()" << ", on thread "
+              << MY_TID << std::endl;
+#endif
+
+    _ptrQueue.size();
+
+} // End queueSize(...)
 

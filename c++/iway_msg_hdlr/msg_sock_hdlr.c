@@ -41,31 +41,45 @@
 #define LISTENER_INTERFACES_IPV6 "::"
 #define LISTENER_INTERFACES_IPV4 "0.0.0.0"
 
+#define ACK_MSG_BUF_LEN 32
 char full_log_msg[1024]; // Socket api-generated errors; generously sized!
+
+static bool SIG_IGN_SET = false;
 
 /**************************************************************************
  * Full-featured timeout receiver with designated shutdown flag checked
  * upon each timeout.  To return unconditionally after the first timeout,
  * just set shutdownFlag=1.
  *
- * The 'With Time-Out' (_wto) form actually does two things - first,
- * the server (listener) is capable of listening for a client connection
- * with periodic checks to see if there has been an externally set flag
- * indicating that this server 'listening' should be shut down (and the
+ * The timeout feature actually does two things - first, the server
+ * (listener) is capable of listening for a client connection with
+ * periodic checks to see if there has been an externally set flag
+ * indicating that this server 'listening' should be shut down (and
  * call return).  This periodic check will occur every socket listen
  * timeout seconds.  Second, once a client connects, if its message
- * send gets delayed, the WTO function can timeout that read operation
+ * send gets delayed, the timeout setting will end that read operation
  * and return with appropriate error code.  Each of these two timeout
  * durations can be individually set (in units of seconds). 
  *
  * Finally, if the client read times out, the state of the receive buffer
  * is undefined.  Check the function return value as defined above.
  *
- * Structure *sock_struct must be constructed valid prior to call.
+ * Structure *sock_struct must be constructed valid prior to either
+ * msg_sock_hdlr_open_for_xxx call.  See in msg_sock_hdlr.h these:
+ * 
+ *    sock_struct_init_send(...)
+ *    sock_struct_init_recv(...)
+ *
+ * Note that each of the above returns an initialized structure. That
+ * returned structure must be destroy at the end of its life (at the
+ * point determined by caller's usage) using the following function:
+ *
+ *    sock_struct_destroy( sock_struct_t *s )
+ *
+ * See other utilities in msg_sock_hdlr.h.
  **************************************************************************/
 sock_struct_t *msg_sock_hdlr_open_for_recv( sock_struct_t *sock_struct )
 {
-
     // First, do some simple validation on the input structure - 
     sock_struct->valid = 1; // Innocent until proven otherwise 
     if( sock_struct->lsd != 0 ) sock_struct->valid = 0;
@@ -87,6 +101,12 @@ sock_struct_t *msg_sock_hdlr_open_for_recv( sock_struct_t *sock_struct )
         return sock_struct;
     }
     
+    if( ! SIG_IGN_SET ) {
+        set_sigaction_ign_sigpipe();
+        // Call once per process invocation
+        SIG_IGN_SET = true;
+    }
+
     int local_listener_sd; // local listening socket descriptor
 
     struct sockaddr_storage; // client's address information
@@ -217,7 +237,7 @@ sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct,
         sock_struct->result = MSH_INVALID_SOCKSTRUCT;
 
 #ifdef DEBUG_MSH
-        printf( "msg_sock_hdlr_listen sock_struct invalid, returning " );
+        printf( "msg_sock_hdlr_listen() sock_struct invalid, returning " );
 #endif
 
         return sock_struct;
@@ -237,6 +257,11 @@ sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct,
 
     // In the normal case (regardless of timeout settings) this
     // will return 0 -
+
+#ifdef DEBUG_MSH
+        printf( "calling listen() in msg_sock_hdlr_listen() " );
+#endif
+
     int listen_result = listen( local_listener_sd, BACKLOG );
 
     if( listen_result == -1 ) {
@@ -246,7 +271,7 @@ sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct,
         sock_struct->result = MSH_ERROR_SOCKLISTEN;
 
 #ifdef DEBUG_MSH
-        printf( "msg_sock_hdlr_listen listener setup failed, returning " );
+        printf( "msg_sock_hdlr_listen() listener setup failed, returning " );
 #endif
 
         return sock_struct;
@@ -254,9 +279,10 @@ sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct,
 
     // This loop will accept one connection - this is not intended as a
     // multiple, concurrent access function - for that capability, call
-    // this function multiple times.
-    // This while loop continues while there is no client connection AND
-    // the flag shutdownFlag remains zero.
+    // this function multiple times (or, see related github.com project -
+    // ../sample_socket_comm/).
+    // This while loop continues, based up timeout settings,  while
+    // there is no client connection AND the flag shutdownFlag is zero.
     socklen_t sin_size = sizeof their_sockaddr;
     while( true ) {
         local_client_sd = accept( local_listener_sd,
@@ -294,7 +320,7 @@ sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct,
                     continue;
                 }
             }
-            sprintf( full_log_msg, "MSH Info %d; accept() failed for this client access",
+            sprintf( full_log_msg, "MSH Info %d; accept() failed for this client, looping",
                      MSH_ERROR_SOCKACCEPT );
             IWAY_LOG( IWAY_LOG_INFO, full_log_msg );
             continue;
@@ -331,8 +357,11 @@ sock_struct_t *msg_sock_hdlr_listen( sock_struct_t *sock_struct,
         sock_struct->result = MSH_CLIENT_CONNECTED;
         sock_struct->csd = local_client_sd;
 
+
 #ifdef DEBUG_MSH
             printf( "msg_sock_hdlr_listen returning with client successfully connected \n" );
+            printf( "msg_sock_hdlr_listen  dumping sock_struct:\n" );
+            sock_struct_dump( sock_struct );
 #endif
 
         return sock_struct;
@@ -394,7 +423,8 @@ sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct,
     int return_code = MSH_MESSAGE_NOT_RECVD;
 
 #ifdef DEBUG_MSH
-    printf( "msg_sock_hdlr_recv recvg msg ...\n" );
+    printf( "msg_sock_hdlr_recv recvg msg ... first, dumping sock_struct:\n" );
+    sock_struct_dump( sock_struct );
 #endif
 
     // There is a tricky circumstance that must be accounted for in this
@@ -485,17 +515,47 @@ sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct,
         }
     } // End while( read > 0 )
 
+#ifdef DEBUG_MSH
+    printf( "at msg_sock_hdlr_recv bytes_read < 1. Specifically: %d.\n", bytes_read );
+#endif
+
+
+    // Finding is that a timeout is bytes_read == -1 and a lost connection
+    // is bytes_read == 0
+    if( bytes_read == 0 ) {
+        // Assume we lost the connection - sender will reconnect if necessary
+
+        // This call may change sock_struct->result again
+        bool wasEpipe = check_for_broken_socket( sock_struct );
+        if( wasEpipe ) return_code = sock_struct->result;
+
+#ifdef DEBUG_MSH
+        printf( "Send ack failure was EPIPE? %s\n", (wasEpipe ? "Yes" : "No") );
+#endif
+
+    }
+
     if( bytes_read < 0 ) {
         // Do we have a timeout situation?  If so, we are NOT going to read
         // more but we WILL change the return code
         if( set_cli_timeout && ( errno == EWOULDBLOCK || errno == EAGAIN ) ) { 
 
 #ifdef DEBUG_MSH
-            printf( "msg_sock_hdlr_recv timeout (bytes_read<0).\n" );
+            printf( "msg_sock_hdlr_recv IS timeout (bytes_read<0).\n" );
 #endif
 
             return_code = MSH_MESSAGE_RECV_TIMEOUT;
         }
+
+#ifdef DEBUG_MSH
+        else {
+            // OK, bytes_read < 0, but NOT a timeout - no use case presently
+            printf( "***************************************************\n" );
+            printf( "at msg_sock_hdlr_recv bytes_read < 1. Specifically: %d.\n", bytes_read );
+            printf( "***************************************************\n" );
+        }
+#endif
+
     }
     if( bytes_read > 0 && sendAck ) {
 
@@ -504,15 +564,23 @@ sock_struct_t *msg_sock_hdlr_recv( sock_struct_t *sock_struct,
 #endif
 
         // Send an ACK
-        char ack_response[32] = { 0 };
-        sprintf( ack_response, "ACK.bytes:%d", message_size );
+        char ack_response[ACK_MSG_BUF_LEN] = { 0 };
+        sprintf( ack_response, ":ACK:ByteCount:%d", message_size );
 
         if( send( local_client_sd, ack_response, strlen( ack_response ), 0 ) == -1 ) {
             return_code = MSH_ERROR_ACK_SEND_FAIL;
+ 
+            // This call may change sock_struct->result again
+            bool wasEpipe = check_for_broken_socket( sock_struct );
+
+#ifdef DEBUG_MSH
+            printf( "Send ack failure was EPIPE? %s\n", (wasEpipe ? "Yes" : "No") );
+#endif
+
         }
 
 #ifdef DEBUG_MSH_RETIRED
-        printf( "ACK msg sent: %s\n", ack_response );
+        printf( "ACK msg sent: %s\n", (bytes_read > 0 ? ack_response : "no ack sent") );
 #endif
 
     }
@@ -540,6 +608,12 @@ sock_struct_t *msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct )
         IWAY_LOG( IWAY_LOG_ERROR, full_log_msg );
         sock_struct->result = MSH_INVALID_SOCKSTRUCT;
         return sock_struct;
+    }
+    
+    if( ! SIG_IGN_SET ) {
+        set_sigaction_ign_sigpipe();
+        // Call once per process invocation
+        SIG_IGN_SET = true;
     }
 
     bool set_cli_timeout = ( sock_struct->cto > 0 );
@@ -600,7 +674,7 @@ sock_struct_t *msg_sock_hdlr_open_for_send( sock_struct_t *sock_struct )
  
     if( set_cli_timeout ) {
 
-#ifdef DEBUG_MSH_RETIRED
+#ifdef DEBUG_MSH
         printf( "Setting Client Timeouts\n" );
 #endif
 
@@ -661,27 +735,41 @@ sock_struct_t *msg_sock_hdlr_send( sock_struct_t *sock_struct,
     // that AS A CLIENT, we communicate over this socket (to server).
     int local_client_sd = sock_struct->csd;
 
-    if( send( local_client_sd, message_buf, strlen( message_buf )+1, 0 ) == -1 ) {
+
+#ifdef DEBUG_MSH
+    printf( "msg_sock_hdlr_send send msg ... first, dumping sock_struct:\n" );
+    sock_struct_dump( sock_struct );
+#endif
+
+    int msgSendResult =
+        send( local_client_sd, message_buf, strlen( message_buf )+1, 0 );
+
+#ifdef DEBUG_MSH
+        printf( "In msg_sock_hdlr_send(...), msgSendResult: %d.\n", msgSendResult );
+#endif
+
+    if( msgSendResult == -1 ) {
 
 #ifdef DEBUG_MSH
         printf( "Message send failed.  Returning.\n" );
-        perror( "send() failure in Client" );
 #endif
 
-        sprintf( full_log_msg,
-                 "MSH Err %d; send() failure; closing client send socket",
-                 MSH_MESSAGE_NOT_SENT );
-        IWAY_LOG( IWAY_LOG_ERROR, full_log_msg );
-        close( local_client_sd );
-        sock_struct->csd = 0;
         sock_struct->result = MSH_MESSAGE_NOT_SENT;
+
+        // This call may change sock_struct->result again
+        bool wasEpipe = check_for_broken_socket( sock_struct );
+
+#ifdef DEBUG_MSH
+        printf( "Send failure was EPIPE? %s\n", (wasEpipe ? "Yes" : "No") );
+#endif
+
         return sock_struct;
     }
 
     sock_struct->result = MSH_MESSAGE_SENT;
 
     // Recv an ACK
-    char ack_response[32] = { 0 };
+    char ack_response[ACK_MSG_BUF_LEN] = { 0 };
     int bytes_read;
 
     if( awaitAck ) {
@@ -689,13 +777,22 @@ sock_struct_t *msg_sock_hdlr_send( sock_struct_t *sock_struct,
         printf( "ACK recv is next\n" );
 #endif
 
-        if( ( bytes_read = read( local_client_sd, ack_response, 32 ) ) == -1 ) {
+        memset( ack_response, 0, ACK_MSG_BUF_LEN );
+        if( ( bytes_read = read( local_client_sd, ack_response, ACK_MSG_BUF_LEN ) ) == -1 ) {
             sock_struct->result = MSH_ERROR_ACK_RECV_FAIL;
+
+            // This call may change sock_struct->result again
+            bool wasEpipe = check_for_broken_socket( sock_struct );
+
+#ifdef DEBUG_MSH
+            printf( "Read ack failure was EPIPE? %s\n", (wasEpipe ? "Yes" : "No") );
+#endif
+
         }
 
 #ifdef DEBUG_MSH_RETIRED
         printf( "ACK bytes_read: %d\n", bytes_read );
-        printf( "ACK rec'd: %s\n", ack_response );
+        printf( "ACK rec'd: %s\n", (bytes_read > 0 ? ack_response : "no ack rcv'd") );
 #endif
     }
 
@@ -708,3 +805,18 @@ sock_struct_t *msg_sock_hdlr_send( sock_struct_t *sock_struct,
 } /* End msg_sock_hdlr_send(...) */
 
 
+/**************************************************************************/
+bool check_for_broken_socket( sock_struct_t * sock_struct )
+{
+    if( errno == EPIPE ) {
+        // This socket connection is broken - take action
+        sprintf( full_log_msg,
+                 "MSH Err %d; send() failure; closing client send socket",
+                 MSH_MESSAGE_NOT_SENT );
+        IWAY_LOG( IWAY_LOG_ERROR, full_log_msg );
+        sock_struct_close_client( sock_struct );
+        sock_struct->result = MSH_CLIENT_DISCONNECTED;
+        return true;
+    }
+    return false;
+}

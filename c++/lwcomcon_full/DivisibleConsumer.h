@@ -56,7 +56,7 @@ private:
     void mainLoop();
     void processConsumerQueue( std::string *pString );
     bool processLwccQueue( std::string *pString );
-    void handleConsumerOutput( const char * results );
+    void handleConsumerOutput( char * results );
 
     std::string _lwcchost;
     int _lwccport;

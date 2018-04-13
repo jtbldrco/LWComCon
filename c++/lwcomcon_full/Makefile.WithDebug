@@ -1,5 +1,15 @@
 PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+
+#####################################################################
+#
+# If you are using this Makefile.WithDebug to build your project, you
+# probably also want to use ../iway_msg_hdlr/Makefile.WithDebug to
+# rebuild that library which is used in this project (see below).
+#
+#####################################################################
+
+
 LIB_NAME = imsgsockhdlr
 FULL_LIB_NAME_A = lib$(LIB_NAME).a
 FULL_LIB_NAME_SO = lib$(LIB_NAME).so

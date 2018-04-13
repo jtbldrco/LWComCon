@@ -198,7 +198,7 @@ void DivisibleConsumer::processConsumerQueue( std::string *pString )
                               << ", new consumer result: \n" << results << std::endl;
 #endif
 
-                    handleConsumerOutput( results );
+                    handleConsumerOutput( results ); // results redefined in this call
                 } // End if number > 0
                 
             } // End if not-null
@@ -215,11 +215,18 @@ void DivisibleConsumer::processConsumerQueue( std::string *pString )
 } // End doConsumeThing()
 
 /**************************************************************************/
-void DivisibleConsumer::handleConsumerOutput( const char * results )
+void DivisibleConsumer::handleConsumerOutput( char * results )
 {
     // Choice of what to do (like send to another MsgCommHdlr) -
     // here, we'll just output to stdout
     std::cout << LWPCL_CP_RESULTS << results << std::endl;
+
+    // Due to thread I/O behavior, we want the parts of this output string
+    // to be in a single string so it does not get split when going out
+    // to the console window! We can co-opt the results array for this
+    sprintf( results, "Input queue backlog: %d\n", _pConsReceiverMch->queueSize() );
+    
+    std::cout << results << std::endl;
 
 } // End handleConsumerProcessResults(...)
 

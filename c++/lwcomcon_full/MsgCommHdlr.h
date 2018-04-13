@@ -64,6 +64,8 @@ public:
     // BE DELETED when and if its content is sent over the network.
     void enqueueMessage( std::string *msg );
 
+    int queueSize();
+
 protected:
     // Required by base class
     void run();
