@@ -1,4 +1,4 @@
-# C++ Message Communications Handler Classes <img style="float: right;" src="../../images/iwaytechnology284x60.gif" />
+# C++ Lightweight Command/Control <img style="float: right;" src="../../images/iwaytechnology284x60.gif" />
 
 ## Status: Work In Progress
 
