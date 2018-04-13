@@ -1,6 +1,6 @@
 # C++ Message Communications Handler Classes <img style="float: right;" src="../../images/iwaytechnology284x60.gif" />
 
-## Statis work in progress
+## Status: Work In Progress
 
 This subdirectory contains these important elements:
 
