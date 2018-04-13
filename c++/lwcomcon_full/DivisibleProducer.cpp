@@ -229,7 +229,7 @@ void DivisibleProducer::produceWorkOutput() {
                                  PRODUCER_UPPER_ADD );
 
     // We must have a heap-based string to pass to the PtrQueue, also must
-    // wrap it in the proper notation (CC_GRAM) for interpretation on the
+    // wrap it in the proper notation (LWPCL_xxx) for interpretation on the
     // other end.
     std::string *pString = new std::string( LWPCL_PRODUCER +
                                             std::to_string( genResult ) );

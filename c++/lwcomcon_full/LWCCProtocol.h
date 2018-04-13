@@ -55,7 +55,7 @@ using namespace std;
 
 /**************************************************************************
  * Convenience functions to simplify inspection and use of above
- * grammar elements in the LWComCon Protocol.
+ * protocol elements in the LWComCon Protocol.
  */
 class LWCCProtocol {
 
@@ -111,4 +111,5 @@ public:
 
 
 }; // End class LWCCProtocol
+
 #endif /* SRC_LWCOMCONPROTOCOL_H_ */
