@@ -1,6 +1,6 @@
 # iWay Logger -- General rsyslog Utility
 
-<img style="float: right;" src="../../images/iwaytechnology284x60.gif" /> iWay Logger is a simple, easily extended, *header-file only* implementation of utilities to output messages from C/C++ programs to a log file managed by GNU rsyslog (see [https://www.gnu.org/software/libc/manual/html_node/Syslog.html](https://www.gnu.org/software/libc/manual/html_node/Syslog.html) for more on rsyslog).
+<img align="right" src="../../images/iwaytechnology284x60.gif" /> iWay Logger is a simple, easily extended, *header-file only* implementation of utilities to output messages from C/C++ programs to a log file managed by GNU rsyslog (see [https://www.gnu.org/software/libc/manual/html_node/Syslog.html](https://www.gnu.org/software/libc/manual/html_node/Syslog.html) for more on rsyslog).
 
 By *header-file only*, we mean that no library is required for use; only inclusion of the header file itself.
 
