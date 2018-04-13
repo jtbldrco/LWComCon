@@ -12,7 +12,7 @@ MAIN_PROG3 = DivisibleProducer
 
 TEST_PROG1 = MsgCommHdlrTestSender
 TEST_PROG2 = MsgCommHdlrTestReceiver
-TEST_PROG3 = LWCCGrammarTest
+TEST_PROG3 = LWCCProtocolTest
 
 PROGRAMNAMES = $(MAIN_PROG1) $(MAIN_PROG2) $(MAIN_PROG3)  $(TEST_PROG1) $(TEST_PROG2) $(TEST_PROG3)
 
@@ -25,7 +25,7 @@ MAIN_PROG3_OBJS = DivisibleProducer.o MsgCommHdlr.o ThreadedWorker.o ThreadMappe
 
 TEST_PROG1_OBJS = MsgCommHdlrTestSender.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
 TEST_PROG2_OBJS = MsgCommHdlrTestReceiver.o MsgCommHdlr.o ThreadedWorker.o ThreadMapper.o
-TEST_PROG3_OBJS = LWCCGrammarTest.o
+TEST_PROG3_OBJS = LWCCProtocolTest.o
 
 # Compilers
 CC = gcc

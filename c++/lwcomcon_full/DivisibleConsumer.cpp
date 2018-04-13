@@ -25,7 +25,7 @@
 #include "DivisibleConsumer.h"
 #include "iway_logger.h"
 #include "simple_pc_funcs.h"
-#include "LWCCGrammar.h"
+#include "LWCCProtocol.h"
 
 #include <iostream>
 #include <string>
@@ -182,9 +182,9 @@ void DivisibleConsumer::processConsumerQueue( std::string *pString )
     char logMsg[LOG_MSG_BUFFER_LEN] = { 0 };
 
     if( pString != NULL ) {
-        if( LWCCGrammar::isMessageType( pString, LWGMR_PRODUCER ) ) {
+        if( LWCCProtocol::isMessageType( pString, LWPCL_PRODUCER ) ) {
             // Got a good PRODUCER message - consume it!
-            char *content = LWCCGrammar::messageContent( pString, LWGMR_PRODUCER );
+            char *content = LWCCProtocol::messageContent( pString, LWPCL_PRODUCER );
             if( content != NULL ) {
 
                 char *endptr;
@@ -219,7 +219,7 @@ void DivisibleConsumer::handleConsumerOutput( const char * results )
 {
     // Choice of what to do (like send to another MsgCommHdlr) -
     // here, we'll just output to stdout
-    std::cout << LWGMR_CP_RESULTS << results << std::endl;
+    std::cout << LWPCL_CP_RESULTS << results << std::endl;
 
 } // End handleConsumerProcessResults(...)
 
@@ -232,7 +232,7 @@ bool DivisibleConsumer::processLwccQueue( std::string *pString )
 
         // We got a message from the receiver thread
 
-        if( LWCCGrammar::isMessageType( pString, LWGMR_SHUTDOWN ) ) {
+        if( LWCCProtocol::isMessageType( pString, LWPCL_SHUTDOWN ) ) {
 
 #ifdef DEBUG_DIVISIBLE
             std::cout << __PRETTY_FUNCTION__ << " object " << _instanceName

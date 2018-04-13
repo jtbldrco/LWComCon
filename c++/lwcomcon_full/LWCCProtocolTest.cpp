@@ -23,10 +23,10 @@
  **************************************************************************/
 
 /*
- * LWCCGrammarTest.cpp
+ * LWCCProtocolTest.cpp
  */
 
-#include "LWCCGrammar.h"
+#include "LWCCProtocol.h"
 
 #include <iostream>
 
@@ -39,17 +39,17 @@ int main( int argc, char *argv[] ) {
 
     const char TEST_MSG_CONTENT[128] = "Some fixed test msg content.";
 
-    string msg1( LWGMR_SHUTDOWN ); // 'Normal' shutdown msg
+    string msg1( LWPCL_SHUTDOWN ); // 'Normal' shutdown msg
     string msg2 = msg1 + TEST_MSG_CONTENT;
 
-    if( LWCCGrammar::isMessageType( &msg1, LWGMR_SHUTDOWN ) ) {
+    if( LWCCProtocol::isMessageType( &msg1, LWPCL_SHUTDOWN ) ) {
         cout << "Test 1a Pass - detect SHUTDOWN with NO following content using isMessageType()" << endl;
     } else {
         failCount++;
         cout << "Test 1a FAIL - detect SHUTDOWN with NO following content using isMessageType()" << endl;
     }
 
-    msgContent = LWCCGrammar::messageContent( &msg1, LWGMR_SHUTDOWN );
+    msgContent = LWCCProtocol::messageContent( &msg1, LWPCL_SHUTDOWN );
     if( msgContent == NULL ) {
         cout << "Test 1b Pass - with SHUTDOWN, return NULL msg content when there is none" << endl;
     } else {
@@ -59,14 +59,14 @@ int main( int argc, char *argv[] ) {
         cout << "Test 1b recovered message content: " << msgContent << endl;
     }
 
-    if( LWCCGrammar::isMessageType( &msg2, LWGMR_SHUTDOWN ) ) {
+    if( LWCCProtocol::isMessageType( &msg2, LWPCL_SHUTDOWN ) ) {
         cout << "Test 2a Pass - detect SHUTDOWN WITH following content using isMessageType()" << endl;
     } else {
         failCount++;
         cout << "Test 2a FAIL - detect SHUTDOWN WITH following content using isMessageType()" << endl;
     }
 
-    msgContent = LWCCGrammar::messageContent( &msg2, LWGMR_SHUTDOWN );
+    msgContent = LWCCProtocol::messageContent( &msg2, LWPCL_SHUTDOWN );
     if( msgContent == NULL ) {
         cout << "Test 2b Pass - with SHUTDOWN, ignore any following content using messageContent()" << endl;
     } else {
@@ -77,17 +77,17 @@ int main( int argc, char *argv[] ) {
     }
 
 
-    string msg3( LWGMR_PRODUCER ); // NULL producer msg content
+    string msg3( LWPCL_PRODUCER ); // NULL producer msg content
     string msg4 = msg3 + TEST_MSG_CONTENT;
 
-    if( LWCCGrammar::isMessageType( &msg3, LWGMR_PRODUCER ) ) {
+    if( LWCCProtocol::isMessageType( &msg3, LWPCL_PRODUCER ) ) {
         cout << "Test 3a Pass - detect PRODUCER with NO following content using isMessageType()" << endl;
     } else {
         failCount++;
         cout << "Test 3a FAIL - detect PRODUCER with NO following content using isMessageType()" << endl;
     }
 
-    msgContent = LWCCGrammar::messageContent( &msg3, LWGMR_PRODUCER );
+    msgContent = LWCCProtocol::messageContent( &msg3, LWPCL_PRODUCER );
     if( msgContent == NULL ) {
         cout << "Test 3b Pass - in PRODUCER detect NULL msg content with messageContent()" << endl;
     } else {
@@ -97,14 +97,14 @@ int main( int argc, char *argv[] ) {
         cout << "Test 3b recovered message content: " << msgContent << endl;
     }
 
-    if( LWCCGrammar::isMessageType( &msg4, LWGMR_PRODUCER ) ) {
+    if( LWCCProtocol::isMessageType( &msg4, LWPCL_PRODUCER ) ) {
         cout << "Test 4a Pass - detect PRODUCER WITH following content using isMessageType()" << endl;
     } else {
         failCount++;
         cout << "Test 4a FAIL - detect PRODUCER WITH following content using isMessageType()" << endl; 
     }
 
-    msgContent = LWCCGrammar::messageContent( &msg4, LWGMR_PRODUCER );
+    msgContent = LWCCProtocol::messageContent( &msg4, LWPCL_PRODUCER );
     if( strcmp( msgContent, TEST_MSG_CONTENT ) == 0 ) {
         cout << "Test 4b Pass - in PRODUCER detect msg content with messageContent()" << endl;
     } else {
@@ -115,17 +115,17 @@ int main( int argc, char *argv[] ) {
     }
 
 
-    string msg5( LWGMR_CONSUMER ); // NULL consumer msg content
+    string msg5( LWPCL_CONSUMER ); // NULL consumer msg content
     string msg6 = msg5 + TEST_MSG_CONTENT;
 
-    if( LWCCGrammar::isMessageType( &msg5, LWGMR_CONSUMER ) ) {
+    if( LWCCProtocol::isMessageType( &msg5, LWPCL_CONSUMER ) ) {
         cout << "Test 5a Pass - detect CONSUMER with NO following content using isMessageType()" << endl;
     } else {
         failCount++;
         cout << "Test 5a FAIL - detect CONSUMER with NO following content using isMessageType()" << endl; 
     }
 
-    msgContent = LWCCGrammar::messageContent( &msg5, LWGMR_CONSUMER );
+    msgContent = LWCCProtocol::messageContent( &msg5, LWPCL_CONSUMER );
     if( msgContent == NULL ) {
         cout << "Test 5b Pass - in CONSUMER detect NULL msg content with messageContent()" << endl;
     } else {
@@ -135,14 +135,14 @@ int main( int argc, char *argv[] ) {
         cout << "Test 5b recovered message content: " << msgContent << endl;
     }
 
-    if( LWCCGrammar::isMessageType( &msg6, LWGMR_CONSUMER ) ) {
+    if( LWCCProtocol::isMessageType( &msg6, LWPCL_CONSUMER ) ) {
         cout << "Test 6a Pass - detect CONSUMER WITH following content using isMessageType()" << endl;
     } else {
         failCount++;
         cout << "Test 6a FAIL - detect CONSUMER WITH following content using isMessageType()" << endl; 
     }
 
-    msgContent = LWCCGrammar::messageContent( &msg6, LWGMR_CONSUMER );
+    msgContent = LWCCProtocol::messageContent( &msg6, LWPCL_CONSUMER );
     if( strcmp( msgContent, TEST_MSG_CONTENT ) == 0 ) {
         cout << "Test 6b Pass - in CONSUMER detect msg content with messageContent()" << endl;
     } else {
