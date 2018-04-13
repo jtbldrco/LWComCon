@@ -1,8 +1,6 @@
 # Simple Client-Server Socket Communications
 
-<img style="float: right;" src="../../images/iwaytechnology284x60.gif" />
-
-This simple example is self-contained and complete including Server and Client applications.  This example focuses on the following interesting aspects of client-server socket communications:
+<img align="right" src="../../images/iwaytechnology284x60.gif" /> This simple example is self-contained and complete including Server and Client applications.  This example focuses on the following interesting aspects of client-server socket communications:
 
 - the server handles any practical number of concurrent client connections because it forks a new child process to handle the network communications with each new client connection,
 - the client and server each complete round-trip communications (client sends, server receives, then, server responds and client receives),
