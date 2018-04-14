@@ -267,7 +267,8 @@ void DivisibleProducer::receiveProdAcks() {
     while( true ) {
         std::string *pMessage = _pProdAckReceiverMch->dequeueMessage();
         if( NULL == pMessage ) return; // It's empty
-        std::cout << *pMessage << std::endl;
+        std::cout << "Received Ack for work product: "
+                  << LWCCProtocol::messageContent( pMessage, LWPCL_PRODUCER ) << std::endl;
         delete pMessage;
     } // End while-loop
 

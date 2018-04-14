@@ -117,6 +117,7 @@ void LWComConFull::mainLoop() {
         std::string response;
         int i;
 
+        std::cout << std::endl;
         std::cout << "Enter 1 to shutdown Producer," << std::endl;
         std::cout << "Enter 2 to shutdown Consumer," << std::endl;
         std::cout << "Enter 3 to shutdown LWComCon (this app)," << std::endl;
