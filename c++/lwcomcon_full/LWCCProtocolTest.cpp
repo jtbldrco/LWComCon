@@ -34,15 +34,19 @@ using namespace std;
 
 int main( int argc, char *argv[] ) {
 
+    int totalCount = 12;
+    int passCount = 0;
     int failCount = 0;
     char * msgContent = NULL;
 
     const char TEST_MSG_CONTENT[128] = "Some fixed test msg content.";
 
+
     string msg1( LWPCL_SHUTDOWN ); // 'Normal' shutdown msg
     string msg2 = msg1 + TEST_MSG_CONTENT;
 
     if( LWCCProtocol::isMessageType( &msg1, LWPCL_SHUTDOWN ) ) {
+        passCount++;
         cout << "Test 1a Pass - detect SHUTDOWN with NO following content using isMessageType()" << endl;
     } else {
         failCount++;
@@ -51,6 +55,7 @@ int main( int argc, char *argv[] ) {
 
     msgContent = LWCCProtocol::messageContent( &msg1, LWPCL_SHUTDOWN );
     if( msgContent == NULL ) {
+        passCount++;
         cout << "Test 1b Pass - with SHUTDOWN, return NULL msg content when there is none" << endl;
     } else {
         failCount++;
@@ -60,6 +65,7 @@ int main( int argc, char *argv[] ) {
     }
 
     if( LWCCProtocol::isMessageType( &msg2, LWPCL_SHUTDOWN ) ) {
+        passCount++;
         cout << "Test 2a Pass - detect SHUTDOWN WITH following content using isMessageType()" << endl;
     } else {
         failCount++;
@@ -68,6 +74,7 @@ int main( int argc, char *argv[] ) {
 
     msgContent = LWCCProtocol::messageContent( &msg2, LWPCL_SHUTDOWN );
     if( msgContent == NULL ) {
+        passCount++;
         cout << "Test 2b Pass - with SHUTDOWN, ignore any following content using messageContent()" << endl;
     } else {
         failCount++;
@@ -81,6 +88,7 @@ int main( int argc, char *argv[] ) {
     string msg4 = msg3 + TEST_MSG_CONTENT;
 
     if( LWCCProtocol::isMessageType( &msg3, LWPCL_PRODUCER ) ) {
+        passCount++;
         cout << "Test 3a Pass - detect PRODUCER with NO following content using isMessageType()" << endl;
     } else {
         failCount++;
@@ -89,6 +97,7 @@ int main( int argc, char *argv[] ) {
 
     msgContent = LWCCProtocol::messageContent( &msg3, LWPCL_PRODUCER );
     if( msgContent == NULL ) {
+        passCount++;
         cout << "Test 3b Pass - in PRODUCER detect NULL msg content with messageContent()" << endl;
     } else {
         failCount++;
@@ -98,6 +107,7 @@ int main( int argc, char *argv[] ) {
     }
 
     if( LWCCProtocol::isMessageType( &msg4, LWPCL_PRODUCER ) ) {
+        passCount++;
         cout << "Test 4a Pass - detect PRODUCER WITH following content using isMessageType()" << endl;
     } else {
         failCount++;
@@ -106,6 +116,7 @@ int main( int argc, char *argv[] ) {
 
     msgContent = LWCCProtocol::messageContent( &msg4, LWPCL_PRODUCER );
     if( strcmp( msgContent, TEST_MSG_CONTENT ) == 0 ) {
+        passCount++;
         cout << "Test 4b Pass - in PRODUCER detect msg content with messageContent()" << endl;
     } else {
         failCount++;
@@ -119,6 +130,7 @@ int main( int argc, char *argv[] ) {
     string msg6 = msg5 + TEST_MSG_CONTENT;
 
     if( LWCCProtocol::isMessageType( &msg5, LWPCL_CONSUMER ) ) {
+        passCount++;
         cout << "Test 5a Pass - detect CONSUMER with NO following content using isMessageType()" << endl;
     } else {
         failCount++;
@@ -127,6 +139,7 @@ int main( int argc, char *argv[] ) {
 
     msgContent = LWCCProtocol::messageContent( &msg5, LWPCL_CONSUMER );
     if( msgContent == NULL ) {
+        passCount++;
         cout << "Test 5b Pass - in CONSUMER detect NULL msg content with messageContent()" << endl;
     } else {
         failCount++;
@@ -136,6 +149,7 @@ int main( int argc, char *argv[] ) {
     }
 
     if( LWCCProtocol::isMessageType( &msg6, LWPCL_CONSUMER ) ) {
+        passCount++;
         cout << "Test 6a Pass - detect CONSUMER WITH following content using isMessageType()" << endl;
     } else {
         failCount++;
@@ -144,6 +158,7 @@ int main( int argc, char *argv[] ) {
 
     msgContent = LWCCProtocol::messageContent( &msg6, LWPCL_CONSUMER );
     if( strcmp( msgContent, TEST_MSG_CONTENT ) == 0 ) {
+        passCount++;
         cout << "Test 6b Pass - in CONSUMER detect msg content with messageContent()" << endl;
     } else {
         failCount++;
@@ -152,6 +167,8 @@ int main( int argc, char *argv[] ) {
         cout << "Test 6b recovered message content: " << msgContent << endl;
     }
 
-    cout << "Test Complete. Test Fail Count: "<< failCount << endl;
+    cout << endl << "Test Complete. Total: " << totalCount
+                 << "; Pass: " << passCount
+                 << "; Fail: "<< failCount << endl;
 
 } // End main(...)

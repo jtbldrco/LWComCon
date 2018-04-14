@@ -37,6 +37,7 @@ public:
     DivisibleConsumer( const char * instanceName,
                        const char * lwcchost, const int lwccport,
                        const char * clhost, const int clport,
+                       const char * pahost, const int paport,
                        const int connectTmo, const int readTmo );
 
     // 'virtual' destructor is important for native
@@ -52,6 +53,7 @@ private:
     std::string _instanceName; 
     MsgCommHdlr *_pLwccReceiverMch;
     MsgCommHdlr *_pConsReceiverMch;
+    MsgCommHdlr *_pProdAckSenderMch;
 
     void mainLoop();
     void processConsumerQueue( std::string *pString );
@@ -62,6 +64,8 @@ private:
     int _lwccport;
     std::string _clhost;
     int _clport;
+    std::string _pahost;
+    int _paport;
 
 };
 

@@ -39,14 +39,15 @@
 // needed, consider using LWPCL_CONTROL.
 // For other messages, usual form will be like this - 
 //
-//    :PRODUCER:following here is producer output content
+//    ::PRODUCER::following here is producer output content
 //
-// with the :xxx: portion starting at position zero.
-#define LWPCL_SHUTDOWN ":SHUTDOWN:"
-#define LWPCL_CONSUMER ":CONSUMER:"
-#define LWPCL_PRODUCER ":PRODUCER:"
-#define LWPCL_CONTROL  ":CONTROL:"
-#define LWPCL_CP_RESULTS  ":CONSUMER_PROCESS_RESULTS:"
+// with the ::xxx:: portion starting at position zero.
+#define LWPCL_SHUTDOWN "::SHUTDOWN::"
+#define LWPCL_CONSUMER "::CONSUMER::"
+#define LWPCL_PRODUCER "::PRODUCER::"
+#define LWPCL_PRODACK  "::PRODUCER_ACK::"
+#define LWPCL_CONTROL  "::CONTROL::"
+#define LWPCL_CP_RESULTS  "::CONSUMER_PROCESS_RESULTS::"
 
 #include <string.h>
 #include <string>

@@ -33,29 +33,29 @@
 
 void showUsage() {
     std::cout << "  usage: ./DivisibleProducer <listener_host_ifc> <listener_host_port>" << std::endl
-              << "                             <consumer_host_ifc> <consumer_host_port>" << std::endl;
+              << "                             <consumer_host_ifc> <consumer_host_port>" << std::endl
+              << "                             <prodack_host_ifc> <prodack_host_port>" << std::endl;
 
 }
 
 int main( const int argc, const char *argv[] ) {
 
-    if( argc != 5 ) {
+    if( argc != 7 ) {
         showUsage();
         return 1;
     }
 
-    int listenerPort = atoi( argv[2] );
-    int consumerPort = atoi( argv[4] );
-
 #ifdef DEBUG_DIVISIBLE
     printf( "About to create dc.\n" );
 #endif
-    DivisibleProducer dc( "DivPro", argv[1], listenerPort,
-                                    argv[3], consumerPort,
+    DivisibleProducer dc( "DivPro", argv[1], atoi( argv[2] ),
+                                    argv[3], atoi( argv[4] ),
+                                    argv[5], atoi( argv[6] ),
                                     10, 10 );
 #ifdef DEBUG_DIVISIBLE
     printf( "About to call dc.go().\n" );
 #endif
+    printf( "\n" );
     dc.go();
 
     return 0;
@@ -86,10 +86,12 @@ DivisibleProducer::DivisibleProducer(
     const char * instanceName,
     const char * lhost, const int lport,
     const char * chost, const int cport,
+    const char * pahost, const int paport,
     const int connectTmo, const int readTmo ) :
     _instanceName( instanceName ),
     _lhost( lhost ), _lport( lport ),
-    _chost( chost ), _cport( cport )
+    _chost( chost ), _cport( cport ),
+    _pahost( pahost ), _paport( paport )
 {
 
 #ifdef DEBUG_DIVISIBLE
@@ -104,8 +106,12 @@ DivisibleProducer::DivisibleProducer(
 
     _pReceiverMch = new MsgCommHdlr( std::string( "LwccRcvrFor" ) + std::string( instanceName ),
                                      MCH_Function::receiver, _lhost, _lport, connectTmo, readTmo );
+
     _pSenderMch = new MsgCommHdlr(  std::string( "SenderToConsFor" ) + std::string( instanceName ),
                                   MCH_Function::sender, _chost, _cport, connectTmo, readTmo );
+
+    _pProdAckReceiverMch = new MsgCommHdlr(  std::string( "ProdAckReceiverFor" ) + std::string( instanceName ),
+                                  MCH_Function::receiver, _pahost, _paport, connectTmo, readTmo );
 
     char logName[128] = { 0 };
     strcpy( logName, "DivisibleProducer." );
@@ -121,6 +127,7 @@ DivisibleProducer::DivisibleProducer(
 DivisibleProducer::~DivisibleProducer() {
     delete _pSenderMch;
     delete _pReceiverMch;
+    delete _pProdAckReceiverMch;
 } // End ~DivisibleProducer()
 
 
@@ -133,6 +140,7 @@ void DivisibleProducer::go() {
 
     _pSenderMch->go();
     _pReceiverMch->go();
+    _pProdAckReceiverMch->go();
 
     mainLoop();
 
@@ -140,6 +148,7 @@ void DivisibleProducer::go() {
     // MsgCommHdlr objects terminate and return
     _pSenderMch->join();
     _pReceiverMch->join();
+    _pProdAckReceiverMch->join();
 
 } // End go()
 
@@ -182,6 +191,10 @@ void DivisibleProducer::mainLoop() {
         // sender MsgCommHdlr to be sent along to Consumer.
         produceWorkOutput();
 
+        // Next, read all the ProdAcks sent from Consumer
+        // note, this loops and catches all that are queued (quick)
+        receiveProdAcks();
+
         // Next, read from receiver (for shutdown msg)
 
 #ifdef DEBUG_DIVISIBLE
@@ -199,6 +212,7 @@ void DivisibleProducer::mainLoop() {
                 // Shutdown has been signaled
                 _pSenderMch->signalShutdown( true );
                 _pReceiverMch->signalShutdown( true );
+                _pProdAckReceiverMch->signalShutdown( true );
                 shutdownSignalDetected = true;
             } else {
                 memset( logMsg, 0, LOG_MSG_BUFFER_LEN );
@@ -244,3 +258,17 @@ void DivisibleProducer::produceWorkOutput() {
     std::cout << *pString << std::endl;
 
 } // End produceWorkOutput()
+
+
+/**************************************************************************/
+void DivisibleProducer::receiveProdAcks() {
+
+    // This step is quick, so just run the queue to empty each time called
+    while( true ) {
+        std::string *pMessage = _pProdAckReceiverMch->dequeueMessage();
+        if( NULL == pMessage ) return; // It's empty
+        std::cout << *pMessage << std::endl;
+        delete pMessage;
+    } // End while-loop
+
+} // End receiveProdAcks()

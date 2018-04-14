@@ -34,26 +34,29 @@
 void showUsage() {
     std::cout << "usage: ./DivisibleConsumer <lwcc_list_host_ifc> <lwcc_list_host_port>" << std::endl
               << "                           <cons_list_host_ifc> <cons_list_host_port>" << std::endl
-              << "(both ports are listeners)" << std::endl;
+              << "                           <prodack_host_ifc> <prodack_host_port>" << std::endl
+              << "(two listeners, one sender)" << std::endl;
 }
 
 int main( int argc, char *argv[] ) {
 
-    if( argc != 5 ) {
+    if( argc != 7 ) {
         showUsage();
         return 1;
     }
 
     DivisibleConsumer dc( "DivCon", argv[1], atoi( argv[2] ),
                                     argv[3], atoi( argv[4] ),
+                                    argv[3], atoi( argv[6] ),
                                     10, 10 );
+    printf( "\n" );
     dc.go();
 
     return 0;
 } // End main(...)
 
 
-#define MAINLOOP_SLEEP_MSECS 1000
+#define MAINLOOP_SLEEP_MSECS 500
 #define LOG_MSG_BUFFER_LEN 256
 #define CONSUMER_RESULTS_BUFFER_LEN 256
 
@@ -65,10 +68,12 @@ DivisibleConsumer::DivisibleConsumer(
     const char * instanceName,
     const char * lwcchost, const int lwccport,
     const char * clhost, const int clport,
+    const char * pahost, const int paport,
     const int connectTmo, const int readTmo ) :
     _instanceName( instanceName ),
     _lwcchost( lwcchost ), _lwccport( lwccport ),
-    _clhost( clhost ), _clport( clport )
+    _clhost( clhost ), _clport( clport ),
+    _pahost( pahost ), _paport( paport )
 {
 
     // Two MsgCommHdlr objects will be used to deal with incoming message
@@ -84,6 +89,10 @@ DivisibleConsumer::DivisibleConsumer(
                                          MCH_Function::receiver, _clhost, _clport,
                                          connectTmo, readTmo );
 
+    _pProdAckSenderMch = new MsgCommHdlr( std::string( "ProdAckSenderrFor" ) + std::string( instanceName ),
+                                         MCH_Function::sender, _pahost, _paport,
+                                         connectTmo, readTmo );
+
     char logName[128] = { 0 };
     strcpy( logName, "DivisibleConsumer." );
     strcat( logName, instanceName );
@@ -96,6 +105,7 @@ DivisibleConsumer::DivisibleConsumer(
 DivisibleConsumer::~DivisibleConsumer() {
     delete _pLwccReceiverMch;
     delete _pConsReceiverMch;
+    delete _pProdAckSenderMch;
 } // End ~DivisibleConsumer()
 
 
@@ -104,6 +114,7 @@ void DivisibleConsumer::go() {
 
     _pLwccReceiverMch->go();
     _pConsReceiverMch->go();
+    _pProdAckSenderMch->go();
 
     mainLoop();
 
@@ -111,6 +122,7 @@ void DivisibleConsumer::go() {
     // MsgCommHdlr objects terminate and return
     _pLwccReceiverMch->join();
     _pConsReceiverMch->join();
+    _pProdAckSenderMch->join();
 
 } // End go()
 
@@ -165,6 +177,7 @@ void DivisibleConsumer::mainLoop() {
         if( shutdownSignalDetected ) {
             _pLwccReceiverMch->signalShutdown( true );
             _pConsReceiverMch->signalShutdown( true );
+            _pProdAckSenderMch->signalShutdown( true );
             return;
         }
         // Slow this loop down just a bit!
@@ -202,6 +215,9 @@ void DivisibleConsumer::processConsumerQueue( std::string *pString )
                 } // End if number > 0
                 
             } // End if not-null
+
+            std::string *pAck = new std::string( LWPCL_PRODACK + *pString );
+            _pProdAckSenderMch->enqueueMessage( pAck );
 
         } else {
             strcpy( logMsg, "Received unrecognized command: " );

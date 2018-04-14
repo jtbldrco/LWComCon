@@ -37,6 +37,7 @@ public:
     DivisibleProducer( const char * instanceName,
                        const char * lhost, const int lport,
                        const char * chost, const int cport,
+                       const char * pahost, const int paport,
                        const int connectTmo, const int readTmo );
 
     // 'virtual' destructor is important for native
@@ -45,6 +46,7 @@ public:
 
     void go(); // How object is put into motion
     void produceWorkOutput();
+    void receiveProdAcks();
 
 protected:
 
@@ -53,6 +55,7 @@ private:
     std::string _instanceName; 
     MsgCommHdlr *_pSenderMch;
     MsgCommHdlr *_pReceiverMch;
+    MsgCommHdlr *_pProdAckReceiverMch;
 
     void mainLoop();
 
@@ -60,6 +63,8 @@ private:
     int _lport;
     std::string _chost;
     int _cport;
+    std::string _pahost;
+    int _paport;
 
 
 };

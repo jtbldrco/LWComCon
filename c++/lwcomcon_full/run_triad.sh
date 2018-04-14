@@ -34,17 +34,23 @@ LW_PORT=16273
 PROD_L_HOST=localhost
 PROD_L_PORT=16274
 
+# Producer listener (Ack from Consumer)
+# - LWComCon opens sender to this port, 
+# - Producer opens receiver on this port.
+PROD_A_HOST=localhost
+PROD_A_PORT=16275
+
 # Consumer listener (from LWComCon)
 # - LWComCon opens sender to this port, 
 # - Consumer opens receiver on this port.
 CON_L_HOST=localhost
-CON_L_PORT=16275
+CON_L_PORT=16276
 
 # Consumer listener (from Producer)
 # - LWComCon opens sender to this port, 
 # - Consumer opens receiver on this port.
 CON_P_HOST=localhost
-CON_P_PORT=16276
+CON_P_PORT=16277
 
 if [ "$1" == "lwcc" ] ; then
 
@@ -64,9 +70,10 @@ if [ "$1" == "prod" ] ; then
     # DivProd has a receiver (from lwcc), and a sender (to con) msg hdlr - 
     # usage: ./DivisibleProducer <lwcc_host_list_ifc> <lwcc_host_list_port>
     #                            <consumer_dest_host_ifc> <consumer_dest_host_port>
+    #                            <prodack_host_ifc> <prodack_host_port>
 
     # 'Push to backgroud' allows shell access
-    ./DivisibleProducer $PROD_L_HOST $PROD_L_PORT $CON_P_HOST $CON_P_PORT  &
+    ./DivisibleProducer $PROD_L_HOST $PROD_L_PORT $CON_P_HOST $CON_P_PORT $PROD_A_HOST $PROD_A_PORT  &
     exit 0
 fi
 
@@ -75,9 +82,10 @@ if [ "$1" == "con" ] ; then
     # DivCon has a receiver (from lwcc), and a receiver (from prod) msg hdlr - 
     # usage: ./DivisibleConsumer <lwcc_host_list_ifc> <lwcc_host_list_port>
     #                            <prod_host_list_ifc> <prod_host_list_port>
+    #                            <prodack_host_ifc> <prodack_host_port>
 
     # 'Push to backgroud' allows shell access
-    ./DivisibleConsumer $CON_L_HOST $CON_L_PORT $CON_P_HOST $CON_P_PORT  &
+    ./DivisibleConsumer $CON_L_HOST $CON_L_PORT $CON_P_HOST $CON_P_PORT $PROD_A_HOST $PROD_A_PORT  &
     exit 0
 fi
 
