@@ -327,7 +327,7 @@ void MsgCommHdlr::mainLoop() {
 
 #ifdef DEBUG_MSGCOMMHDLR
                     std::cout << __PRETTY_FUNCTION__ << ", object " << _instanceName
-                              << ", after doReceiverSetup(), struct:" << std::endl;
+                              << ", after listenForClientConnection(), struct:" << std::endl;
                     sock_struct_dump( receiverSockStruct );
 #endif
                     
