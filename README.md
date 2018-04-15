@@ -1,4 +1,4 @@
-# Lightweight C++ and Java Command/Control [#LWComCon] 
+# Lightweight Command/Control - C++ and Java [#LWComCon] 
 ## A Multi-Threaded, Multi-Process, Network-based</br>Command/Control Design Pattern in C++ and Java 
 
 MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
