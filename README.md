@@ -1,7 +1,7 @@
 # Lightweight Command/Control - C++ and Java [#LWComCon] 
 ## A Network-based, Multi-Process, Multi-Threaded,</br>Command/Control Framework in C++ and Java 
 
-MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
+**MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA**
 <br/>(*original work previously published under Open Source License in December, 2002*)
 
 <img align="right" src="./images/OSP_Full.png" />
