@@ -50,7 +50,7 @@ int main( int argc, char *argv[] ) {
 
     DivisibleConsumer dc( "DivCon", argv[1], atoi( argv[2] ),
                                     argv[3], atoi( argv[4] ),
-                                    argv[3], atoi( argv[6] ),
+                                    argv[5], atoi( argv[6] ),
                                     CONNECT_TIMEOUT, READ_TIMEOUT );
     printf( "\n" );
     dc.go();
@@ -92,7 +92,7 @@ DivisibleConsumer::DivisibleConsumer(
                                          MCH_Function::receiver, _clhost, _clport,
                                          connectTmo, readTmo );
 
-    _pProdAckSenderMch = new MsgCommHdlr( std::string( "ProdAckSenderrFor" ) + std::string( instanceName ),
+    _pProdAckSenderMch = new MsgCommHdlr( std::string( "ProdAckSenderFor" ) + std::string( instanceName ),
                                          MCH_Function::sender, _pahost, _paport,
                                          connectTmo, readTmo );
 
