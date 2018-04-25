@@ -38,6 +38,9 @@ void showUsage() {
 
 }
 
+#define CONNECT_TIMEOUT 2
+#define READ_TIMEOUT 2
+
 int main( const int argc, const char *argv[] ) {
 
     if( argc != 7 ) {
@@ -51,7 +54,7 @@ int main( const int argc, const char *argv[] ) {
     DivisibleProducer dc( "DivPro", argv[1], atoi( argv[2] ),
                                     argv[3], atoi( argv[4] ),
                                     argv[5], atoi( argv[6] ),
-                                    10, 10 );
+                                    CONNECT_TIMEOUT, READ_TIMEOUT );
 #ifdef DEBUG_DIVISIBLE
     printf( "About to call dc.go().\n" );
 #endif
@@ -62,7 +65,7 @@ int main( const int argc, const char *argv[] ) {
 } // End main(...)
 
 
-#define MAINLOOP_SLEEP_MSECS 5000
+#define MAINLOOP_SLEEP_MSECS 4000
 #define LOG_MSG_BUFFER_LEN 256
 #define CONSUMER_RESULTS_BUFFER_LEN 256
 

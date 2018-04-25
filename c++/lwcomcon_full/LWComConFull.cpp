@@ -56,6 +56,10 @@ int main( int argc, char *argv[] ) {
 } // End main(...)
 
 
+#define CONNECT_TIMEOUT 2
+#define READ_TIMEOUT 2
+
+
 /*************************************************************************
  * LWComConFull - instanceName,
  *                listenerInterface, listenerPort,
@@ -72,11 +76,11 @@ LWComConFull::LWComConFull( const char * instanceName,
      _chost( chost ), _cport( cport )
 {
     _pListner      = new MsgCommHdlr( "lwcc_mch_receiver", MCH_Function::receiver,
-                                      _lhost, _lport, 10, 10 );
+                                      _lhost, _lport, CONNECT_TIMEOUT, READ_TIMEOUT );
     _pSenderToProd = new MsgCommHdlr( "lwcc_mch_sender_to_prod", MCH_Function::sender,
-                                      _phost, _pport, 10, 10 );
+                                      _phost, _pport, CONNECT_TIMEOUT, READ_TIMEOUT );
     _pSenderToCon  = new MsgCommHdlr( "lwcc_mch_sender_to_con", MCH_Function::sender,
-                                      _chost, _cport, 10, 10 );
+                                      _chost, _cport, CONNECT_TIMEOUT, READ_TIMEOUT );
 
 } // End LWComConFull(...)
 
@@ -175,7 +179,7 @@ void LWComConFull::mainLoop() {
 
         if( R3 ) {
             // Can't be in a hurry here ...
-            if( R4 ) ThreadedWorker::threadSleep( 10000 );
+            if( R4 ) ThreadedWorker::threadSleep( 1500 );
             _pSenderToProd->signalShutdown( true );
             _pSenderToCon->signalShutdown( true );
             _pListner->signalShutdown( true );

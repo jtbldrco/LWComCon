@@ -33,9 +33,9 @@
 #include "MsgCommHdlr.h"
 #include <iostream>
 
-#define MAINLOOP_SOCK_SETUP_SLEEP_MSECS 2500
-#define MAINLOOP_SEND_LOOP_SLEEP_MSECS 1500
-#define MAINLOOP_READ_LOOP_SLEEP_MSECS 1500
+#define MAINLOOP_SOCK_SETUP_SLEEP_MSECS 1000
+#define MAINLOOP_SEND_LOOP_SLEEP_MSECS 500
+#define MAINLOOP_READ_LOOP_SLEEP_MSECS 500
 
 static std::string twPreamble( "ThreadedWorker_of_" );
 static std::string mpqPreamble( "PtrQueue_of_" );
@@ -284,7 +284,7 @@ void MsgCommHdlr::mainLoop() {
             // Set up the receiver/listener socket here first.  That
             // is, the listener socket is opened here AND NOT a
             // corresponding client connection - that's done in the
-            // while loop, below
+            // while loop below
             
             // If looping, free old memory (harmless if not)
             sock_struct_destroy( receiverSockStruct );

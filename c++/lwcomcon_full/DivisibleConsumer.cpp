@@ -38,6 +38,9 @@ void showUsage() {
               << "(two listeners, one sender)" << std::endl;
 }
 
+#define CONNECT_TIMEOUT 2
+#define READ_TIMEOUT 2
+
 int main( int argc, char *argv[] ) {
 
     if( argc != 7 ) {
@@ -48,7 +51,7 @@ int main( int argc, char *argv[] ) {
     DivisibleConsumer dc( "DivCon", argv[1], atoi( argv[2] ),
                                     argv[3], atoi( argv[4] ),
                                     argv[3], atoi( argv[6] ),
-                                    10, 10 );
+                                    CONNECT_TIMEOUT, READ_TIMEOUT );
     printf( "\n" );
     dc.go();
 
