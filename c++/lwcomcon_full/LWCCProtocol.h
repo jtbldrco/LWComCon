@@ -42,6 +42,7 @@
 //    ::PRODUCER::following here is producer output content
 //
 // with the ::xxx:: portion starting at position zero.
+
 #define LWPCL_SHUTDOWN "::SHUTDOWN::"
 #define LWPCL_CONSUMER "::CONSUMER::"
 #define LWPCL_PRODUCER "::PRODUCER::"
