@@ -78,7 +78,8 @@ DivisibleConsumer::DivisibleConsumer(
     _instanceName( instanceName ),
     _lwcchost( lwcchost ), _lwccport( lwccport ),
     _clhost( clhost ), _clport( clport ),
-    _pahost( pahost ), _paport( paport )
+    _pahost( pahost ), _paport( paport ),
+    _outputCount( 0 )
 {
 
     // Two MsgCommHdlr objects will be used to deal with incoming message
@@ -240,6 +241,7 @@ void DivisibleConsumer::handleConsumerOutput( char * results )
 {
     // Choice of what to do (like send to another MsgCommHdlr) -
     // here, we'll just output to stdout
+    std::cout << "Output count: " << ++_outputCount << std::endl;
     std::cout << LWPCL_CP_RESULTS << results << std::endl;
 
     // Due to thread I/O behavior, we want the parts of this output string
@@ -249,7 +251,7 @@ void DivisibleConsumer::handleConsumerOutput( char * results )
     
     std::cout << results << std::endl;
 
-} // End handleConsumerProcessResults(...)
+} // End handleConsumerOutput(...)
 
 
 /**************************************************************************/
