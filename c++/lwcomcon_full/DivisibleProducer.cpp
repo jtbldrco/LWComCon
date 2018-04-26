@@ -66,8 +66,8 @@ int main( const int argc, const char *argv[] ) {
 
 
 #define MAINLOOP_SLEEP_MSECS 10
-#define MAINLOOP_SECONDARY_COUNT 400
-#define MAINLOOP_SECONDARY_SLEEP_MSECS 1200000
+#define MAINLOOP_SECONDARY_COUNT 50000
+#define MAINLOOP_SECONDARY_SLEEP_MSECS 120000
 #define LOG_MSG_BUFFER_LEN 256
 #define CONSUMER_RESULTS_BUFFER_LEN 256
 
@@ -79,9 +79,14 @@ int main( const int argc, const char *argv[] ) {
 // #define PRODUCER_UPPER_ADD 50000
 
 // [20000..40000]
-#define PRODUCER_BASE 10000
-#define PRODUCER_LOWER_ADD 10000
-#define PRODUCER_UPPER_ADD 30000
+// #define PRODUCER_BASE 10000
+// #define PRODUCER_LOWER_ADD 10000
+// #define PRODUCER_UPPER_ADD 30000
+
+// [4000..8000]
+#define PRODUCER_BASE 2000
+#define PRODUCER_LOWER_ADD 2000
+#define PRODUCER_UPPER_ADD 4000
 
 /**************************************************************************
  * DivisibleProducer implementation contains MsgCommHdlr's for
@@ -96,7 +101,8 @@ DivisibleProducer::DivisibleProducer(
     _instanceName( instanceName ),
     _lhost( lhost ), _lport( lport ),
     _chost( chost ), _cport( cport ),
-    _pahost( pahost ), _paport( paport )
+    _pahost( pahost ), _paport( paport ),
+    _producerCount( 0 )
 {
 
 #ifdef DEBUG_DIVISIBLE
@@ -242,6 +248,7 @@ void DivisibleProducer::mainLoop() {
         secondary -= 1;
         if( secondary < 1 ) {
             secondary = secondaryStart;
+            std::cout << "Producer count: " << _producerCount << std::endl;
             ThreadedWorker::threadSleep( MAINLOOP_SECONDARY_SLEEP_MSECS );
         }
 
@@ -270,6 +277,8 @@ void DivisibleProducer::produceWorkOutput() {
 
     // Show work product on console ???
     std::cout << *pString << std::endl;
+
+    _producerCount++;
 
 } // End produceWorkOutput()
 

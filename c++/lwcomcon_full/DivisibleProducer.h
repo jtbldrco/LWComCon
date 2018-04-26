@@ -58,6 +58,7 @@ private:
     MsgCommHdlr *_pProdAckReceiverMch;
 
     void mainLoop();
+    long _producerCount;
 
     std::string _lhost;
     int _lport;
