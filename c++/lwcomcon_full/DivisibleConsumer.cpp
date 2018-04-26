@@ -59,7 +59,9 @@ int main( int argc, char *argv[] ) {
 } // End main(...)
 
 
-#define MAINLOOP_SLEEP_MSECS 500
+/// #define MAINLOOP_SLEEP_MSECS 500
+#define MAINLOOP_SLEEP_MSECS 0
+
 #define LOG_MSG_BUFFER_LEN 256
 #define CONSUMER_RESULTS_BUFFER_LEN 256
 

@@ -33,9 +33,13 @@
 #include "MsgCommHdlr.h"
 #include <iostream>
 
-#define MAINLOOP_SOCK_SETUP_SLEEP_MSECS 1000
-#define MAINLOOP_SEND_LOOP_SLEEP_MSECS 500
-#define MAINLOOP_READ_LOOP_SLEEP_MSECS 500
+/// #define MAINLOOP_SOCK_SETUP_SLEEP_MSECS 1000
+/// #define MAINLOOP_SEND_LOOP_SLEEP_MSECS 500
+/// #define MAINLOOP_READ_LOOP_SLEEP_MSECS 500
+
+#define MAINLOOP_SOCK_SETUP_SLEEP_MSECS 0
+#define MAINLOOP_SEND_LOOP_SLEEP_MSECS 0
+#define MAINLOOP_READ_LOOP_SLEEP_MSECS 0
 
 static std::string twPreamble( "ThreadedWorker_of_" );
 static std::string mpqPreamble( "PtrQueue_of_" );
