@@ -66,8 +66,8 @@ int main( const int argc, const char *argv[] ) {
 
 
 #define MAINLOOP_SLEEP_MSECS 10
-#define MAINLOOP_SECONDARY_COUNT 50000
-#define MAINLOOP_SECONDARY_SLEEP_MSECS 120000
+#define MAINLOOP_SECONDARY_COUNT 5000
+#define MAINLOOP_SECONDARY_SLEEP_MSECS 360000
 #define LOG_MSG_BUFFER_LEN 256
 #define CONSUMER_RESULTS_BUFFER_LEN 256
 
@@ -177,7 +177,7 @@ void DivisibleProducer::mainLoop() {
     // Do some work here that must happen 'atomically' and
     // then, check to see if we've been directed to wrap it up.
 
-    int secondaryStart = 400;
+    int secondaryStart = MAINLOOP_SECONDARY_COUNT;
     int secondary = secondaryStart;
     char logMsg[LOG_MSG_BUFFER_LEN] = { 0 };
     while( true ) {
