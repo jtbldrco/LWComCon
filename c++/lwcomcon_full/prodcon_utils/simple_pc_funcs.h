@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <time.h>
 
+
+static long delta = 0;
+static long delta_max = 1000L;
+
 int do_rand_gen( int base, int lower_incr, int upper_incr );
 char * do_compilation( unsigned int number, char result[] );
 
@@ -30,7 +34,11 @@ int do_rand_gen( int base, int lower_incr, int upper_incr )
     printf( "Random number range: 0 to %d\n", RAND_MAX );
 #endif
  
-    srand( time(0) );
+    long tm_now = time(0);
+    long seed = tm_now + delta++;
+    if( delta > delta_max ) delta = 0;
+    
+    srand( seed );
     int rval = rand();
  
 #ifdef DEBUG_PC_FUNCS_DO_RAND_GEN
