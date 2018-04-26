@@ -65,7 +65,9 @@ int main( const int argc, const char *argv[] ) {
 } // End main(...)
 
 
-#define MAINLOOP_SLEEP_MSECS 4000
+#define MAINLOOP_SLEEP_MSECS 10
+#define MAINLOOP_SECONDARY_COUNT 400
+#define MAINLOOP_SECONDARY_SLEEP_MSECS 1200000
 #define LOG_MSG_BUFFER_LEN 256
 #define CONSUMER_RESULTS_BUFFER_LEN 256
 
@@ -169,6 +171,8 @@ void DivisibleProducer::mainLoop() {
     // Do some work here that must happen 'atomically' and
     // then, check to see if we've been directed to wrap it up.
 
+    int secondaryStart = 400;
+    int secondary = secondaryStart;
     char logMsg[LOG_MSG_BUFFER_LEN] = { 0 };
     while( true ) {
 
@@ -231,8 +235,15 @@ void DivisibleProducer::mainLoop() {
         }
 
         if( shutdownSignalDetected ) return;
+
         // Slow this loop down just a bit!
         ThreadedWorker::threadSleep( MAINLOOP_SLEEP_MSECS );
+        
+        secondary -= 1;
+        if( secondary < 1 ) {
+            secondary = secondaryStart;
+            ThreadedWorker::threadSleep( MAINLOOP_SECONDARY_SLEEP_MSECS );
+        }
 
     } // End while( true )
 
