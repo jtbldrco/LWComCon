@@ -1,5 +1,5 @@
-# Lightweight\*\* Command/Control - C++ and Java [#LWComCon] 
-## A Network-based, Multi-Process, Multi-Threaded,</br>Command/Control Framework in C++ and Java 
+# *Lightweight* Command/Control - C++ and Java [#LWComCon] 
+## A Network-based, Multi-Process, Multi-Threaded,</br>Command/Control Framework in C++</br>(with similar capabilities shown in Java) 
 
 **MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA**
 <br/>(*derived from work previously published under Open Source License 2002-2017*)
@@ -8,9 +8,9 @@
 
 Multi-threading, network sockets, multiple processes ... *what's lightweight* about that?  
 
-**\*\*** Well, to begin with, you won't find a third-party broker stuck in the middle that you'll need to allocate machine resources for, stand-up, configure, integrate and manage.  Instead, **all communications are effectively peer-to-peer** and achieved with a simple, TCP network messaging model (user-defined semantics) with optional acks.  My finding is that many scenarios don't need HA failover, guaranteed delivery, routing magic, etc.  Whether you're running in Kubernetes Containers or wireless routers, often - simple is better.
+Well, to begin with, you won't find a third-party broker stuck in the middle that you'll need to allocate machine resources for, stand-up, configure, integrate and manage.  Instead, **all communications are effectively peer-to-peer** and achieved with a simple, TCP network messaging model (user-defined semantics) with optional acks.  My finding is that many scenarios don't need HA failover, guaranteed delivery, routing magic, etc.  Whether you're running in Kubernetes Containers or wireless routers, often - simple is better.
 
-This repository contains materials to introduce and demonstrate a C++ framework (also shown in Java) that's TCP network-based, Inter-process, Multi-threaded Command and Control Framework that's grown out of a field-hardened past work: *The Orderly Shutdown Design Patter*n (OSP).  Included are numerous additional utility design patterns such as -
+This repository contains materials to introduce and demonstrate a C++ framework (shown similarly in Java) that's TCP network-based, Inter-process, Multi-threaded Command and Control Framework that's grown out of a field-hardened past work: *The Orderly Shutdown Design Patter*n (OSP).  Included are numerous additional utility design patterns such as -
 
 - the **ThreadedWorker Design Pattern** (implemented as a C++ class) which offers a simple, easy-to-use multi-threaded codification of the division of labor between *creator*- and *created*-threads and the patterns of use for startup, operation and shutdown,
 - a Thread-Safe, Pointer-based Message Queue - the **C++ *templatized* class ThreadSafeMsgPtrQueue** - which demonstrates software *resource acquisition is initialization* (RAII) and makes trivial (think *invisible*) the thread-safe use of Standard Template Library collections (and also defines a pattern for safe, responsible management of *pointer-based C++ collections*),
