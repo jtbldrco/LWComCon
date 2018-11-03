@@ -6,7 +6,7 @@
 
 <img align="right" src="./images/OSP_Full.png" />
 
-Multi-threading, network sockets, multiple processes ... *what's lightweight* about that?  Well, to begin with, you won't find a third-party broker stuck in the middle that you'll need to allocate machine resources for, stand-up, configure, integrate and manage.  Instead, all communications are effectively peer-to-peer and achieved with a simple, TCP network messaging model (user-defined semantics) with optional acks.  My finding is that many scenarios don't need HA failover, guaranteed delivery, routing magic, etc.  Whether you're running in Kubernetes Containers or wireless routers, often - simple is better.
+Multi-threading, network sockets, multiple processes ... *what's lightweight* about that?  Well, to begin with, you won't find a third-party broker stuck in the middle that you'll need to allocate machine resources for, stand-up, configure, integrate and manage.  Instead, **all communications are effectively peer-to-peer** and achieved with a simple, TCP network messaging model (user-defined semantics) with optional acks.  My finding is that many scenarios don't need HA failover, guaranteed delivery, routing magic, etc.  Whether you're running in Kubernetes Containers or wireless routers, often - simple is better.
 
 This repository contains materials to introduce and demonstrate a TCP network-based, Inter-process, Multi-threaded Command and Control Framework (in both C++ and Java) that's grown out of a past work: The Orderly Shutdown Design Pattern (OSP).  Included are numerous additional utility design patterns such as -
 
