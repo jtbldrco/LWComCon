@@ -10,7 +10,11 @@ Multi-threading, network sockets, multiple processes ... *what's lightweight* ab
 
 Well, to begin with, you won't find a third-party broker stuck in the middle that you'll need to allocate machine resources for, stand-up, configure, integrate and manage.  Instead, **all communications are effectively peer-to-peer** and achieved with a simple, TCP network messaging model (user-defined semantics) with optional acks.  My finding is that many scenarios don't need HA failover, guaranteed delivery, routing magic, etc.  Whether you're running in Kubernetes Containers or wireless routers, often - simple is better.
 
-This repository contains materials to introduce and demonstrate a C++ framework (shown similarly in Java) that's TCP network-based, Inter-process, Multi-threaded Command and Control Framework that's grown out of a field-hardened past work: *The Orderly Shutdown Design Patter*n (OSP).  Included are numerous additional utility design patterns such as -
+Further, OS-specific signaling (eg, Linux Signal Handline) obviously are not portable.  **LWComCon is fully partable** to any OS with TCP networking and threading capabilities.
+
+This repository contains materials to introduce and demonstrate a C++ framework (shown similarly in Java) that's TCP network-based, both Multi-processing and Multi-threaded, Command and Control Framework that's grown out of a field-hardened past work: *The Orderly Shutdown Design Pattern* (OSP).
+
+Included are numerous additional utility design patterns such as -
 
 - the **ThreadedWorker Design Pattern** (implemented as a C++ class) which offers a simple, easy-to-use multi-threaded codification of the division of labor between *creator*- and *created*-threads and the patterns of use for startup, operation and shutdown,
 - a Thread-Safe, Pointer-based Message Queue - the **C++ *templatized* class ThreadSafeMsgPtrQueue** - which demonstrates software *resource acquisition is initialization* (RAII) and makes trivial (think *invisible*) the thread-safe use of Standard Template Library collections (and also defines a pattern for safe, responsible management of *pointer-based C++ collections*),
@@ -20,21 +24,23 @@ This repository contains materials to introduce and demonstrate a C++ framework 
 
 ## Example C++ Use Case: A Full (yet simple) implementation</br>and demonstration of Lightweight Command and Control <img align="right" src="./images/iway104x36.gif" />
 
-This subdirectory project employs all the pieces above in a working example that is intended to be run from two console windows to illustrate the dynamics.  See [./c++/lwcomcon_full](./c++/lwcomcon_full).
+This subdirectory project employs all the pieces above in a working example that is intended to be run from two console windows to illustrate the dynamics.  
 
-## Example Java Use Case: The Orderly Shutdown Pattern
+For complete details on the C++ use case, please see [./c++/lwcomcon_full](./c++/lwcomcon_full).
+
+### Example Java Use Case: The Orderly Shutdown Pattern
 
 These Java examples are similar to the above C++ examples but they are more simple in scope (easier to follow) and don't leverage LWComCon beyond the use-case of the Orderly Shutdown Pattern.
 
-The Orderly Shutdown Pattern (OSP), using TCP/IP-based network communications, allows a *listener thread* of a running service of arbitrary complexity to monitor for, and respond to *at a time of its own choosing*, a request to shutdown (or, quite frankly, any request).  If/when such request is received, the service will then be able to complete any critical work it has queued or initiated (at the discretion of the service) prior to any response - for example, entering a shutdown process leading ultimately to termination.
+The Lightweight Command and Control framework, using TCP/IP-based network communications, allows a *listener thread* of a running service of arbitrary complexity to monitor for, and respond to *at a time of its own choosing*, any command/control message.  As a simple case, consider a shutdown message to shutdown (see below for more).  If/when such a request is received, the service will then be able to complete any critical work it has queued or initiated (at the discretion of the service) prior to any response - for example, entering a shutdown process leading ultimately to termination.
 
 There are multiple advantages of this Pattern, first of which is that the running service can determine when *and how* to handle the request.  This may include re-enqueueing work with a message broker those tasks that have been received but are not complete. Alternatively, it may include completing those tasks prior to termination.  Any pending I/O operations can be properly flushed and closed, and any other related services can likewise be notified of its pending actions or state change.
 
-Other advantages include offering control from remote, and multiple, sources. Specifically, how is this pattern different from Unix signal handling (eg, SIGKILL or SIGTERM)?  To begin with, this pattern allows control of the target service even if that service's host does not allow console access (less a problem in dev/test; more a problem in production -- in particular, imagine a service running within Kubernetes ...).
+Other advantages include offering control from remote, and multiple, sources. Specifically, how is this pattern different from Unix signal handling (eg, SIGKILL or SIGTERM)?  To begin with, this pattern is OS-independent.  Then, it allows control of the target service even if that service's host does not allow console access (less a problem in dev/test; more a problem in production -- in particular, imagine a service running within Kubernetes ...).
 
-No access?  No problem.  Rather, network any message to the target host from any (every?) machine inside the firewall (and, by now, you're thinking *couldn't this be used for more than just* shutdown *signaling?* -- sure!).
+No access?  No problem.  Rather, network any message to the target host from any (every?) machine inside the firewall (**and, by now, you're thinking *couldn't this be used for more than just* shutdown *signaling?* -- sure!**).
 
-So, with this pattern, the shutdown message *could* include any level of nuance (beyond the simple case of "Shutdown as soon as convenient" which is implemented here -- again, really *any* message symantics up to a complete control protocol).  And through the opened, two-way, socket, any acknowledgement could be returned -- even, for example, some estimate of completion time.
+So, with this pattern, the shutdown message *could* include any level of nuance (beyond the simple case of "Shutdown as soon as convenient" which is implemented in the Java sample -- again, really *any* message symantics up to a complete control protocol).  And through the opened, two-way, socket, any acknowledgement could be returned -- even, for example, some estimate of completion time.
 
 Some examples of more extended semantics might be 'shutdown one producer thread', or, 'add one consumer thread', etc.
 
