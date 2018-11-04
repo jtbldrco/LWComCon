@@ -32,7 +32,9 @@ For complete details on the C++ use case, please see [./c++/lwcomcon_full](./c++
 
 These Java examples are similar to the above C++ examples but they are more simple in scope (easier to follow) and don't leverage LWComCon beyond the use-case of the Orderly Shutdown Pattern.
 
-The Lightweight Command and Control framework, using TCP/IP-based network communications, allows a *listener thread* of a running service of arbitrary complexity to monitor for, and respond to *at a time of its own choosing*, any command/control message.  As a simple case, consider a shutdown message to shutdown (see below for more).  If/when such a request is received, the service will then be able to complete any critical work it has queued or initiated (at the discretion of the service) prior to any response - for example, entering a shutdown process leading ultimately to termination.
+## LWComCon Detail
+
+The Lightweight Command and Control framework, using TCP/IP-based network communications, allows a *listener thread* of a running service of arbitrary capability to monitor for, and respond to *at a time of its own choosing*, any command/control message.  As a simple case, consider a shutdown message to shutdown (see below for more).  If/when such a request is received, the service will then be able to complete any critical work it has queued or initiated (at the discretion of the service) prior to any response - for example, entering a shutdown process leading ultimately to termination.
 
 There are multiple advantages of this Pattern, first of which is that the running service can determine when *and how* to handle the request.  This may include re-enqueueing work with a message broker those tasks that have been received but are not complete. Alternatively, it may include completing those tasks prior to termination.  Any pending I/O operations can be properly flushed and closed, and any other related services can likewise be notified of its pending actions or state change.
 
