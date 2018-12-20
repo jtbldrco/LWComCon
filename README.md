@@ -10,7 +10,7 @@ Multi-threading, network sockets, multiple processes ... *what's lightweight* ab
 
 Well, to begin with, you won't find a third-party broker stuck in the middle that you'll need to allocate machine resources for, stand-up, configure, integrate and manage.  Instead, **all communications are effectively peer-to-peer** and achieved with a simple, TCP network messaging model (user-defined semantics) with optional acks.  My finding is that many scenarios don't need HA failover, guaranteed delivery, routing magic, etc.  Whether you're running in Kubernetes Containers or wireless routers, often - simple is better.
 
-Further, OS-specific signaling (eg, Linux Signal Handling) obviously are not portable.  **LWComCon is fully partable** to any OS with TCP networking and threading capabilities.
+Further, OS-specific signaling (eg, Linux Signal Handling) obviously are not portable.  **LWComCon is fully portable** to any OS with TCP networking and threading capabilities.
 
 This repository contains materials to introduce and demonstrate a C++ framework (shown similarly in Java) that's TCP network-based, both Multi-processing and Multi-threaded, Command and Control Framework that's grown out of a field-hardened past work: *The Orderly Shutdown Design Pattern* (OSP).
 
