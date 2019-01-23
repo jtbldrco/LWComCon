@@ -29,3 +29,5 @@ various rates - add Com/Con message to increase/decrease that rate.
 
 - Class LWComConFull: add menu items to control DivisibleProducer and DivisibleConsumer as
 mentioned above; further, extend it to monitor queue lengths and automate the response.
+
+- Extended multiple-machine longevity testing
