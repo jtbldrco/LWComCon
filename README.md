@@ -1,10 +1,16 @@
-# *Lightweight* Command/Control - C++ with Java Adaptations Shown [#LWComCon] 
+# *Lightweight* C++ Command/Control [#LWComCon] 
 ## A Network-based, Multi-Process, Multi-Threaded,</br>Command/Control Framework in C++</br>(with similar capabilities shown in Java) 
 
-**MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA**
-<br/>(*derived from work previously published under Open Source License 2002-2017*)
+**MIT License -- Copyright 2018-2019 iWay Technology LLC -- Boulder, Colorado  USA**
+<br/>(*limited portions derived/adapted from work previously published by iWay Technology under Open Source License 2002-2017*)
 
 <img align="right" src="./images/OSP_Full.png" />
+
+### C++ Framework/Design Pattern Highlights: 
+
+1. Peer-to-peer Inter-process Communications Handler
+2. ThreadWorker Design Pattern
+3. Memory-management-friendly Thread-safe, Pointer-based STL Collection Design Pattern (more below)
 
 Multi-threading, network sockets, multiple processes ... *what's lightweight* about that?  
 
