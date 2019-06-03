@@ -2,7 +2,7 @@
 ## A Network-based, Multi-Process, Multi-Threaded,</br>Command/Control Framework in C++</br>(with similar capabilities shown in Java) 
 
 **MIT License -- Copyright 2018-2019 iWay Technology LLC -- Boulder, Colorado  USA**
-<br/>(*limited portions derived/adapted from work previously published by iWay Technology under Open Source License 2002-2017*)
+<br/>(*limited portions derived/adapted from work previously published by iWay Technology under Open Source License*)
 
 <img align="right" src="./images/OSP_Full.png" />
 
