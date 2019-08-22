@@ -148,6 +148,7 @@ void DivisibleConsumer::mainLoop() {
     char logMsg[LOG_MSG_BUFFER_LEN] = { 0 };
     std::string *pMessage = NULL;
 
+    // Checks within loop for shutdown message
     while( true ) {
 
 #ifdef DEBUG_DIVISIBLE_SLOWDOWN_1000
@@ -186,7 +187,7 @@ void DivisibleConsumer::mainLoop() {
             _pProdAckSenderMch->signalShutdown( true );
             return;
         }
-        // Slow this loop down just a bit!
+        // Slow this loop down just a bit! (mainly for testing)
         ThreadedWorker::threadSleep( MAINLOOP_SLEEP_MSECS );
 
     } // End while( true )
@@ -194,7 +195,9 @@ void DivisibleConsumer::mainLoop() {
 } // End mainLoop()
 
 
-/**************************************************************************/
+/**************************************************************************
+ * Note: deletes passed in object upon completion of processing
+ */
 void DivisibleConsumer::processConsumerQueue( std::string *pString )
 {
     char results[CONSUMER_RESULTS_BUFFER_LEN] = { 0 };
@@ -231,10 +234,11 @@ void DivisibleConsumer::processConsumerQueue( std::string *pString )
             IWAY_LOG( IWAY_LOG_INFO, logMsg );
         }
 
+        // Once processed, delete queue
         delete pString;
     }
 
-} // End doConsumeThing()
+} // End processConsumerQueue(...)
 
 /**************************************************************************/
 void DivisibleConsumer::handleConsumerOutput( char * results )
@@ -254,7 +258,9 @@ void DivisibleConsumer::handleConsumerOutput( char * results )
 } // End handleConsumerOutput(...)
 
 
-/**************************************************************************/
+/**************************************************************************
+ * Note: deletes passed in object upon completion of processing
+ */
 bool DivisibleConsumer::processLwccQueue( std::string *pString )
 {
     bool shutdownSignalDetected = false;
