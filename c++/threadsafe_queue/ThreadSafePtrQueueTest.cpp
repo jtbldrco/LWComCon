@@ -37,6 +37,7 @@
 int test_one( int argc, char *argv[] );
 int test_two( int argc, char *argv[] );
 
+/**************************************************************************/
 int main( int argc, char *argv[] ) {
 
     // This will ensure the 'main thread' gets mapped name 'A1' -
@@ -49,7 +50,7 @@ int main( int argc, char *argv[] ) {
 
 } // End main(...)
 
-
+/**************************************************************************/
 int test_one( int argc, char *argv[] ) {
 
     ThreadSafePtrQueue<StringWithNoisyDestructor> ptrQueue( "test_queue" );
@@ -107,6 +108,7 @@ int test_one( int argc, char *argv[] ) {
     return 0;
 } // End test_one(...)
 
+/**************************************************************************/
 int test_two( int argc, char *argv[] ) {
     
     {
@@ -146,4 +148,4 @@ int test_two( int argc, char *argv[] ) {
     sleep( 3 );
 
     return 0;
-} // End test_one(...)
+} // End test_two(...)
