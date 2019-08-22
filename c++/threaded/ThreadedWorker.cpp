@@ -179,6 +179,7 @@ void ThreadedWorker::signalShutdown( const bool flag ) {
     _shutdownSignaled = flag;
 } // End signalShutdown(...)
 
+/**************************************************************************/
 const bool ThreadedWorker::isShutdownSignaled() const{
 
 #ifdef DEBUG_THREADEDWORKER
