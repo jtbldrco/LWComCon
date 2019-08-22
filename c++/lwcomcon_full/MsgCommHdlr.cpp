@@ -157,6 +157,8 @@ void MsgCommHdlr::signalShutdown( bool flag ) {
  * MsgCommHdlr).  So while this method has access to and can interact
  * with data and members of MsgCommHdlr, it's running in parallel to
  * the thread that called its constuctor and that called its method go().
+ * Update - note that this comment is only true if we were not accessed
+ * through goUnthreaded().
  */
 void MsgCommHdlr::mainLoop() {
 
