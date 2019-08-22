@@ -37,7 +37,7 @@ ExampleThreadedWorker::ExampleThreadedWorker( std::string instanceName ) :
 
 ExampleThreadedWorker::~ExampleThreadedWorker() {}
 
-/*
+/**************************************************************************
  * By design, go() is used to cause the native thread to
  * be created and run, with any necessary preliminaries
  * taking place herein beforehand.
@@ -55,7 +55,7 @@ bool ExampleThreadedWorker::go() {
 
 } // End go()
 
-/*
+/**************************************************************************
  * By design, run() must do any derived-class thread startup
  * tasks and then signal that it's running by causing a 
  * base-class call to ThreadedWorker.isThreadRunning() to 
@@ -79,7 +79,7 @@ void ExampleThreadedWorker::run() {
 
 } // End run()
 
-/*
+/**************************************************************************
  * Required derived class implementation indicating
  * that our native thread is up and running.
  */
@@ -87,6 +87,7 @@ const bool ExampleThreadedWorker::isThreadRunning() {
     return _threadRunning; 
 }
 
+/**************************************************************************/
 void ExampleThreadedWorker::mainLoop() {
 
 #ifdef DEBUG_THREADEDWORKER
