@@ -49,20 +49,21 @@ static char _overflow[21];  // Only needed for LOTS of threads.
 // Constructor in hidden (private) in header file
 // ThreadMapper::ThreadMapper();
 
+/**************************************************************************/
 ThreadMapper::~ThreadMapper() {
 #ifdef DEBUG_THREADMAPPER
     std::cout << "ThreadMapper object destructor executing - should happen exactly once." << std::endl;
 #endif
-}
+} // End ~ThreadMapper()
 
-/*
+/**************************************************************************
  * Reinitialize the entire object.
  */
 void ThreadMapper::clear() {
     _mappedThreadIds.clear();
     _nextIndex = 0;
     memset( _names, 0, sizeof _names );
-}
+} // End clear()
 
 
 /**************************************************************************
@@ -107,7 +108,7 @@ char *ThreadMapper::getMappedThreadName( std::thread::id threadId ) {
     }
     return _names[index]; // Points to mapped name in lazy init array
 
-}
+} // End getMappedThreadName(...)
 
 
 /**************************************************************************
@@ -124,4 +125,4 @@ void ThreadMapper::lazyShortNameAssignment( const int index ) {
     _names[index][1] = _digits[digit];
     _names[index][2] = '\0';
 
-}
+} // End lazyShortNameAssignment
