@@ -55,7 +55,7 @@ ThreadedWorkerTester::ThreadedWorkerTester( std::string instanceName,
 
 ThreadedWorkerTester::~ThreadedWorkerTester() {}
 
-/*
+/**************************************************************************
  * By design, go() is used to cause the native thread to be
  * created and run, with any necessary preliminaries taking
  * place herein beforehand.  The internal thread can created
@@ -77,7 +77,7 @@ bool ThreadedWorkerTester::go() {
 
 } // End go()
 
-/*
+/**************************************************************************
  * By design, run() must do any derived-class thread startup
  * tasks and then signal that it's running by causing a 
  * base-class call to ThreadedWorker.isThreadRunning() to 
@@ -101,14 +101,15 @@ void ThreadedWorkerTester::run() {
 
 } // End run()
 
-/*
+/**************************************************************************
  * Required derived class implementation indicating
  * that our native thread is up and running.
  */
 const bool ThreadedWorkerTester::isThreadRunning() {
     return _threadRunning; 
-}
+} // End isThreadRunning()
 
+/**************************************************************************/
 void ThreadedWorkerTester::mainLoop() {
 
 #ifdef DEBUG_THREADEDWORKER
@@ -160,6 +161,7 @@ void ThreadedWorkerTester::mainLoop() {
 
 } // End mainLoop()
 
+/**************************************************************************/
 void ThreadedWorkerTester::enqueue( const int msgCount, const int millisecSleep ) {
 
     char fullString[64];
@@ -190,6 +192,7 @@ void ThreadedWorkerTester::enqueue( const int msgCount, const int millisecSleep 
 
 } // End enqueue(...)
 
+/**************************************************************************/
 void ThreadedWorkerTester::dequeue( const int msgCount, const int millisecSleep ) {
 
     for( int i = 1; i < 1+msgCount; i++ ) {
