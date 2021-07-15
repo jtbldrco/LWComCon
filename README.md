@@ -139,8 +139,12 @@ $ sudo apt-get install openjdk-8-jdk
 - or -
 $ sudo apt-get install oracle-java9-installer
 ```
+<br/>
+
 <img align="right" src="./images/iwaytechnology284x60.gif" />
-**Copyright 2018 iWay Technology LLC<br/>Boulder, Colorado USA<br/>MIT License**<br/>
+
+**MIT License -- Copyright 2018-2019 iWay Technology LLC -- Boulder, Colorado  USA**
+
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 The above copyright notice and this entire permission notice, including above and below paragraphs, shall be included in all copies or substantial portions of the Software.
