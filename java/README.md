@@ -1,5 +1,11 @@
-# Images README <img align="right" src="../images/iwaytechnology284x60.gif" />
+# #OSP <img style="float: right;" src="../images/iwaytechnology284x60.gif" />
 
-These images are here solely for use in the LWComCon READMEs elsewhere in the project.
+## The Orderly Shutdown Pattern, Simple and Full, in Java
 
-Just to be clear, the LWComCon project does no image file format processing or manipulation of any sort.
+MIT License -- Copyright 2018-2022 iWay Technology LLC -- Boulder, Colorado  USA
+
+**Status: Complete as is**
+
+This collection of Java repository folders contains materials to introduce and demonstrate The Orderly Shutdown Pattern in Java.  Included are both a simple and a full implementation.
+
+For more on OSP, please see [../README.md].
