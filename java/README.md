@@ -8,4 +8,4 @@ MIT License -- Copyright 2018-2022 iWay Technology LLC -- Boulder, Colorado  USA
 
 This collection of Java repository folders contains materials to introduce and demonstrate The Orderly Shutdown Pattern in Java.  Included are both a simple and a full implementation.
 
-For more on OSP, please see [../README.md].
+For more on OSP, please see [../README.md](../README.md).
