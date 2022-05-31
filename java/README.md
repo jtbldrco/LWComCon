@@ -1,4 +1,4 @@
-# #OSP <img style="float: right;" src="../images/iwaytechnology284x60.gif" />
+# OSP <img style="right" src="../images/iwaytechnology284x60.gif" />
 
 ## The Orderly Shutdown Pattern, Simple and Full, in Java
 
