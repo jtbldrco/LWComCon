@@ -2,7 +2,7 @@
 
 ## A Multi-Threaded, Multi-Process, Network-based</br>Command/Control Design Pattern in C++
 
-MIT License -- Copyright 2018 iWay Technology LLC -- Boulder, Colorado  USA
+MIT License -- Copyright 2018-2022 iWay Technology LLC -- Boulder, Colorado  USA
 
 **Status: Work In Progress ...**
 
