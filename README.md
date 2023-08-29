@@ -1,7 +1,7 @@
 # *Lightweight* C++ Command/Control [#LWComCon] 
 ## A Network-based, Multi-Process, Multi-Threaded,</br>Command/Control Framework in C++</br>(with similar capabilities shown in Java) 
 
-**MIT License -- Copyright 2018-2022 iWay Technology LLC -- Boulder, Colorado  USA**
+**MIT License -- Copyright 2018-2023 iWay Technology LLC -- Boulder, Colorado  USA**
 <br/>(*limited portions derived/adapted from work previously published by iWay Technology under Open Source License*)
 
 <img align="right" src="./images/OSP_Full.png" />
@@ -143,7 +143,7 @@ $ sudo apt-get install oracle-java9-installer
 
 <img align="right" src="./images/iwaytechnology284x60.gif" />
 
-**MIT License -- Copyright 2018-2022 iWay Technology LLC -- Boulder, Colorado  USA**
+**MIT License -- Copyright 2018-2023 iWay Technology LLC -- Boulder, Colorado  USA**
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
