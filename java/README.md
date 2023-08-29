@@ -2,7 +2,7 @@
 
 ## The Orderly Shutdown Pattern, Simple and Full, illustrated in Java
 
-MIT License -- Copyright 2018-2022 iWay Technology LLC -- Boulder, Colorado  USA
+MIT License -- Copyright 2018-2023 iWay Technology LLC -- Boulder, Colorado  USA
 
 **Status: Complete as is**
 
