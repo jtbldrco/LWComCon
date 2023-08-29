@@ -1,6 +1,6 @@
 # LWComCon Road Map
 
-This draft Road Map summarizes candidates for next development ...
+This (ancient) draft Road Map summarizes candidates for next development ...
 
 - Connection Resiliency: project lwcomcon_full execution makes it unclear whether, when a node goes
 down and is brought back up, reconnections take place as expected/desired.  It could very well be an
