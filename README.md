@@ -114,7 +114,12 @@ In brief, you will need C++ or Java development tools on your machine to run the
 <br/>
 <img align="center" src="./images/howtogitit.png" />
 <br/>
-
+<code>
+~$ mkdir dev
+~$ cd dev
+~/dev$ git clone https://github.com/jtbldrco/LWComCon.git
+</code>
+<br/>
 As noted throughout, an MIT Open Source License has been attached to everything - it's short, direct, complete, and quite permissive, but PLEASE READ THE LICENSE (appearing below) if you are unfamiliar with its permission grants and restrictions.
 
 
