@@ -111,9 +111,9 @@ All the elements of the LWComCon repository contain working versions (mt, socket
 
 In brief, you will need C++ or Java development tools on your machine to run these examples.  You can download a tarfile from github, or clone the repository (preferred, and easy as pie).  See this - 
 
-<p>
-<img align="left" src="./images/howtogitit.png" />
-</p>
+<br/>
+<img align="center" src="./images/howtogitit.png" />
+<br/>
 
 As noted throughout, an MIT Open Source License has been attached to everything - it's short, direct, complete, and quite permissive, but PLEASE READ THE LICENSE (appearing below) if you are unfamiliar with its permission grants and restrictions.
 
