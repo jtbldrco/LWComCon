@@ -133,11 +133,11 @@ This is not intended to be a tutorial on build-machine setup, but the following 
 
 The Ubuntu Desktop install (see below) I've found to be lightweight and quick to install because it will avoid dragging down 'office-like' software and other things superfluous for a development-only machine.  I'm not sure the gnome-terminal install is required, but there you go; Firefox I believe is absent initially; openssh-server allows you to ssh to the machine (some simple configuration is required - see the web for hints - you're looking for /etc/ssh/sshd_config ... if that file is missing, it suggests the package is not installed yet.
 ```
-$ sudo apt-get install --no-install-recommends ubuntu-desktop
-$ sudo apt-get install gnome-terminal
-$ sudo apt-get install firefox
-$ sudo apt-get install openssh-server 
-$ sudo apt-get install git-core
+$ sudo apt install --no-install-recommends ubuntu-desktop
+$ sudo apt install gnome-terminal
+$ sudo apt install firefox
+$ sudo apt install openssh-server 
+$ sudo apt install git-core
 ```
 #### C++
 Many dev package installs on my machines are probably not actually used in the OSP code. Start with this and see what more you need to build and run the example code.  This should include gcc/g++, make, libs and headers.
@@ -146,9 +146,11 @@ $ sudo apt-get install build-essential
 ```
 #### Java
 ```
-$ sudo apt-get install openjdk-8-jdk
+$ sudo apt install openjdk-21-jdk
 - or -
-$ sudo apt-get install oracle-java9-installer
+$ sudo add-apt-repository ppa:linuxuprising/java
+$ sudo apt update
+$ sudo apt install oracle-java21-installer
 ```
 <br/>
 
