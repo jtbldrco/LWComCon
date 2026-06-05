@@ -11,7 +11,7 @@
 
 The included Makefile builds shared and static libraries ```libimsgsockhdlr.so``` and ```libimsgsockhdlr.a```.
 
-The first test program in this subdirectory [./msg_sock_hdlr_test_01.c](./msg_sock_hdlr_test_01.c) also includes tests of boundary-case circumstances (handling of unterminated input strings).
+The first test program in this subdirectory [./msg_sock_hdlr_test_01.c](./msg_sock_hdlr_test_01.c) also includes tests of boundary-case circumstances (handling of unterminated input strings). Note that this first test is intend to be used as two processes simultaneously (for example, in separate cmd windows) with one process designated 'send' and the other designated 'receive' - see comments in code or usage messages appearing when program input parameters are missing.
 
 To build the source, libraries and test programs, enter:
 
