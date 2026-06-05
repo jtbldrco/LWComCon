@@ -27,7 +27,7 @@ Included are numerous additional utility *Design Patterns* such as -
 - the **ThreadedWorker Design Pattern** (implemented as a C++ class) which offers a simple, easy-to-use multi-threaded codification of the division of labor between *creator*- and *created*-threads and the patterns of use for startup, operation and shutdown [read 'memory-management ease'],
 - a Thread-Safe, Pointer-based Message Queue - appearing herein as the **C++ *templatized* class ThreadSafeMsgPtrQueue** - which demonstrates software *resource acquisition is initialization* (RAII) and makes trivial (think *invisible*) the thread-safe use of Standard Template Library collections (and also defines a pattern for safe, responsible management of *pointer-based C++ collections*),
 - A **higher-level Message Communication Handler Design Pattern** (class MsgCommHdlr) that combines the above two classes to offer quick integration of multiple network-communication endpoints into a larger context as exemplified in this repository's project [lwcomcon_full](./c++/lwcomcon_full).
-- Linux **rsyslog logging** techniques and utilities, and
+- Linux **rslog logging** techniques and utilities, and
 - other **utilities to ease C++ multi-threaded & network programming**, testing, and trouble-shooting.
 
 ## Example C++ Use Case: A Full (yet simple) implementation</br>and demonstration of Lightweight Command and Control <img align="right" src="./images/iway104x36.gif" />
@@ -50,7 +50,7 @@ Other advantages include offering control from remote, and multiple, sources. Sp
 
 No access?  No problem.  Rather, network any message to the target host from any (every?) machine inside the firewall (**and, by now, you're thinking *couldn't this be used for more than just* shutdown *signaling?* -- sure!**).
 
-So, with this pattern, the shutdown message *could* include any level of nuance (beyond the simple case of "Shutdown as soon as convenient" which is implemented in the Java sample -- again, really *any* message symantics up to a complete control protocol).  And through the opened, two-way, socket, any acknowledgement could be returned -- even, for example, some estimate of completion time.
+So, with this pattern, the shutdown message *could* include any level of nuance (beyond the simple case of "Shutdown as soon as convenient" which is implemented in the Java sample -- again, really *any* message semantics up to a complete control protocol).  And through the opened, two-way, socket, any acknowledgement could be returned -- even, for example, some estimate of completion time.
 
 Some examples of more extended semantics might be 'shutdown one producer thread', or, 'add one consumer thread', etc.
 
