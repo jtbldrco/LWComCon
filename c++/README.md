@@ -1,4 +1,4 @@
-## LWComCon <img style="float: right;" src="../images/iwaytechnology284x60.gif" />
+# LWComCon <img style="float: right;" src="../images/iwaytechnology284x60.gif" />
 
 ## A Multi-Threaded, Multi-Process, Network-based</br>Command/Control Design Pattern in C++
 
