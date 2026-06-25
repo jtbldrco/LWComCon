@@ -18,7 +18,7 @@ a model for safe, responsible management of pointer-based C++ collections),
 - Linux rsyslog logging techniques and utilities, and
 - other utilities to ease C++ multi-threaded & network programming, testing, and trouble-shooting.
 
-## Directory lwcomcon_full: - An Example C++ Use Case: A Full (yet simple) implementation and demonstration of Lightweight Command and Control
+## Sub-Directory lwcomcon_full: - An Example C++ Use Case: A Full (yet simple) implementation and demonstration of Lightweight Command and Control
 
 This subdirectory project employs all the pieces above in a working example that is intended to
 be run from three console windows to illustrate the dynamics.  
